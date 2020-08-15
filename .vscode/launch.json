@@ -11,7 +11,7 @@
       "program": "${workspaceFolder}/lib/index.js",
       "protocol": "inspector",
       "args": ["portfolio", "-i", "lib/conf/instance.js"],
-      "preLaunchTask": "buildDebug",
+      "preLaunchTask": "debug:build",
       "disableOptimisticBPs": true,
       "stopOnEntry": true,
       "sourceMaps": true,
@@ -34,7 +34,7 @@
       ]
       // "cwd": "${workspaceRoot}",
       // "protocol": "inspector"
-      // "preLaunchTask": "buildDebug"
+      // "preLaunchTask": "debug:build"
     },
 
     {
