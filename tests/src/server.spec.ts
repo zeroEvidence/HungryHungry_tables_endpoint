@@ -7,7 +7,7 @@ describe("Server", () => {
   let server: Server;
   let expectedAvailableTables: IAvailableTables;
 
-  beforeEach((done) => {
+  beforeEach(() => {
     expectedAvailableTables = {
       Front: {
         name: "Front",
@@ -75,13 +75,10 @@ describe("Server", () => {
 
   beforeAll((done) => {
     const spaceballsAccessCodesToDruidia = "12345";
-    const config = new Config(
-      undefined,
-      undefined,
-      undefined,
-      "test",
-      spaceballsAccessCodesToDruidia
-    );
+    const config = new Config({
+      authPassword: spaceballsAccessCodesToDruidia,
+      authUsername: "test",
+    });
     server = new Server(config);
     server.start(done);
   });
@@ -93,7 +90,7 @@ describe("Server", () => {
   describe("start", () => {
     test("Should get unauthorised message when no basic auth is given", async () => {
       const response = await fetch(
-        "https://localhost:8080/tables/johnnysBurgerBar"
+        "http://localhost:8080/tables/johnnysBurgerBar"
       ).then((res) => res.json());
 
       expect(response).toEqual({ code: 401, message: "Unauthorized" });
@@ -101,7 +98,7 @@ describe("Server", () => {
 
     test("Should get message when correct basic auth is given", async () => {
       const availableTables = await fetch(
-        "https://localhost:8080/tables/johnnysBurgerBar",
+        "http://localhost:8080/tables/johnnysBurgerBar",
         {
           headers: {
             Authorization: "Basic dGVzdDoxMjM0NQ==",

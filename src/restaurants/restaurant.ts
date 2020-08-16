@@ -1,7 +1,7 @@
-import { Promise } from 'bluebird';
-import { IAvailableTables } from '../interfaces/availableTables.interface';
-import { ITables } from '../interfaces/tables.interface';
-import joi = require('joi');
+import { Promise } from "bluebird";
+import { IAvailableTables } from "../interfaces/availableTables.interface";
+import { ITables } from "../interfaces/tables.interface";
+import joi = require("joi");
 
 export class Restaurant {
   private _tables: Promise<ITables>;
@@ -28,25 +28,25 @@ export class Restaurant {
     const tablesSchema = joi.object().keys({
       Front: joi
         .object({
-          name: joi.string().valid('Front').required(),
+          name: joi.string().valid("Front").required(),
           tables: joi.object().required(),
           active_tables: joi.number().integer().min(0).required(),
-          is_legacy: joi.string().valid('false', 'true').required(),
+          is_legacy: joi.string().valid("false", "true").required(),
         })
         .required(),
       Back: joi
         .object({
-          name: joi.string().valid('Back').required(),
+          name: joi.string().valid("Back").required(),
           tables: joi.object().required(),
           active_tables: joi.number().integer().min(0).required(),
-          is_legacy: joi.string().valid('false', 'true').required(),
+          is_legacy: joi.string().valid("false", "true").required(),
         })
         .required(),
       A: joi.object({
-        name: joi.string().valid('A').required(),
+        name: joi.string().valid("A").required(),
         tables: joi.object().required(),
         active_tables: joi.number().integer().min(0).required(),
-        is_legacy: joi.string().valid('false', 'true').required(),
+        is_legacy: joi.string().valid("false", "true").required(),
       }),
     });
     // schema to check the tables keys.
