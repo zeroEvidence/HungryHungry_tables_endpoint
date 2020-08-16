@@ -55,8 +55,8 @@
     },
     {
       "type": "npm",
-      "label": "buildDebug",
-      "script": "buildDebug",
+      "label": "debug:build",
+      "script": "debug:build",
       "group": {
         "kind": "build"
       },
