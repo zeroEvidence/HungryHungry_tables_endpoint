@@ -2,8 +2,9 @@ import * as restify from "restify";
 import { Config } from "../config/config";
 
 export class Auth {
-  constructor(private config: Config) {
-    //
+  constructor(private server: restify.Server, private config: Config) {
+    this.server.use(restify.plugins.authorizationParser());
+    this.server.use(this.authorisation.bind(this));
   }
 
   public authorisation(

@@ -1,3 +1,5 @@
+import { readFileSync } from "fs";
+import * as restify from "restify";
 import { Config } from "../config/config";
 import { Auth } from "../middleware/auth";
 import { Server } from "../server";
@@ -6,6 +8,7 @@ export class Services {
   private config: Config | undefined;
   private server: Server | undefined;
   private auth: Auth | undefined;
+  private restifyServer: restify.Server | undefined;
 
   constructor(config: Config = new Config()) {
     this.config = config;
@@ -26,9 +29,30 @@ export class Services {
       return this.auth;
     }
 
-    this.auth = new Auth(this.getConfig());
+    this.auth = new Auth(this.getRestifyServer(), this.getConfig());
 
     return this.auth;
+  }
+
+  public getRestifyServer() {
+    if (this.restifyServer) {
+      return this.restifyServer;
+    }
+
+    const options: restify.ServerOptions = {};
+    const config: Config = this.getConfig();
+
+    if (
+      typeof config.keyURI === "string" &&
+      typeof config.certURI === "string"
+    ) {
+      options.key = readFileSync(config.keyURI, "utf8");
+      options.certificate = readFileSync(config.certURI, "utf8");
+    }
+
+    this.restifyServer = restify.createServer(options);
+
+    return this.restifyServer;
   }
 
   public getServer() {
@@ -36,7 +60,8 @@ export class Services {
       return this.server;
     }
 
-    this.server = new Server(this.getConfig(), this.getAuth());
+    this.getAuth();
+    this.server = new Server(this.getRestifyServer(), this.getConfig());
 
     return this.server;
   }

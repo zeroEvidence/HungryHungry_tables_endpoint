@@ -1,26 +1,10 @@
-import { readFileSync } from "fs";
 import * as restify from "restify";
 import { Config } from "./config/config";
-import { Auth } from "./middleware/auth";
 import { JohnnysBurgerBarRestaurant } from "./restaurants/johnnysBurgerBarRestaurant";
 
 export class Server {
-  private server: restify.Server;
-
-  constructor(private config: Config, private auth: Auth) {
-    const options: restify.ServerOptions = {};
-
-    if (
-      typeof this.config.keyURI === "string" &&
-      typeof this.config.certURI === "string"
-    ) {
-      options.key = readFileSync(this.config.keyURI, "utf8");
-      options.certificate = readFileSync(this.config.certURI, "utf8");
-    }
-
-    this.server = restify.createServer(options);
-    this.server.use(restify.plugins.authorizationParser());
-    this.server.use(this.auth.authorisation.bind(this.auth));
+  constructor(private server: restify.Server, private config: Config) {
+    //
   }
 
   public start(cb = () => undefined) {
