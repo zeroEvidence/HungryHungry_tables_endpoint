@@ -1,7 +1,6 @@
-import { Config } from './config';
-import { Server } from './server';
+import { Services } from './modules/services';
 
-const config = new Config();
-const server = new Server(config);
+const services = new Services();
+const server = services.getServer();
 
 server.start();

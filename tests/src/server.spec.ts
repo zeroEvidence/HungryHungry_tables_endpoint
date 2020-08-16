@@ -1,6 +1,7 @@
 import fetch from "node-fetch";
-import { Config } from "../../src/config";
+import { Config } from "../../src/config/config";
 import { IAvailableTables } from "../../src/interfaces/availableTables.interface";
+import { Services } from "../../src/modules/services";
 import { Server } from "../../src/server";
 
 describe("Server", () => {
@@ -79,7 +80,8 @@ describe("Server", () => {
       authPassword: spaceballsAccessCodesToDruidia,
       authUsername: "test",
     });
-    server = new Server(config);
+    const services = new Services(config);
+    server = services.getServer();
     server.start(done);
   });
 

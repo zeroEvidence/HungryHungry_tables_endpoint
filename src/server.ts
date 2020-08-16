@@ -1,12 +1,13 @@
 import { readFileSync } from "fs";
 import * as restify from "restify";
-import { Config } from "./config";
+import { Config } from "./config/config";
+import { Auth } from "./middleware/auth";
 import { JohnnysBurgerBarRestaurant } from "./restaurants/johnnysBurgerBarRestaurant";
 
 export class Server {
   private server: restify.Server;
 
-  constructor(private config: Config = new Config()) {
+  constructor(private config: Config, private auth: Auth) {
     const options: restify.ServerOptions = {};
 
     if (
@@ -19,6 +20,7 @@ export class Server {
 
     this.server = restify.createServer(options);
     this.server.use(restify.plugins.authorizationParser());
+    this.server.use(this.auth.authorisation.bind(this.auth));
   }
 
   public start(cb = () => undefined) {
@@ -29,24 +31,15 @@ export class Server {
         res: restify.Response,
         next: restify.Next
       ) => {
-        const authUsername = req.authorization?.basic?.username;
-        const authPassword = req.authorization?.basic?.password || "";
-
         res.contentType = "application/json";
-        if (
-          authUsername !== this.config.authUsername ||
-          authPassword !== this.config.authPassword
-        ) {
-          res.send({ code: 401, message: "Unauthorized" });
-        } else {
-          try {
-            const johnnysBurgerBar = new JohnnysBurgerBarRestaurant();
-            const availableTables = await johnnysBurgerBar.availableTables;
+        try {
+          const johnnysBurgerBar = new JohnnysBurgerBarRestaurant();
+          const availableTables = await johnnysBurgerBar.availableTables;
 
-            res.send({ code: 200, message: availableTables });
-          } catch (error) {
-            res.send({ code: 503, message: "Service Unavailable" });
-          }
+          res.send({ code: 200, message: availableTables });
+        } catch (error) {
+          console.log("error", error);
+          res.send({ code: 503, message: "Service Unavailable" });
         }
 
         return next();
