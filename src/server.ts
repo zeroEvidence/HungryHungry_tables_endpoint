@@ -1,5 +1,5 @@
-import * as restify from "restify";
-import { JohnnysBurgerBarRestaurant } from "./restaurants/johnnysBurgerBarRestaurant";
+import * as restify from 'restify';
+import { JohnnysBurgerBarRestaurant } from './restaurants/johnnysBurgerBarRestaurant';
 
 export class Server {
   constructor(private server: restify.Server = restify.createServer()) {
@@ -8,13 +8,13 @@ export class Server {
 
   public start(cb = () => undefined) {
     this.server.get(
-      "/tables/johnnysBurgerBar",
+      '/tables/johnnysBurgerBar',
       async (
         req: restify.Request,
         res: restify.Response,
         next: restify.Next
       ) => {
-        res.contentType = "application/json";
+        res.contentType = 'application/json';
 
         try {
           const johnnysBurgerBar = new JohnnysBurgerBarRestaurant();
@@ -22,7 +22,7 @@ export class Server {
 
           res.send({ code: 200, message: availableTables });
         } catch (error) {
-          res.send({ code: 503, message: "Service Unavailable" });
+          res.send({ code: 503, message: 'Service Unavailable' });
         }
 
         res.end();
@@ -30,7 +30,7 @@ export class Server {
     );
 
     this.server.listen(8080, () => {
-      console.log("%s listening at %s", this.server.name, this.server.url);
+      console.log('%s listening at %s', this.server.name, this.server.url);
       cb();
     });
   }
