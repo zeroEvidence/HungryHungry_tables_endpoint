@@ -1,5 +1,7 @@
-import { Server } from './server';
+import { Config } from "./config";
+import { Server } from "./server";
 
-const server = new Server();
+const config = new Config();
+const server = new Server(config);
 
 server.start();
