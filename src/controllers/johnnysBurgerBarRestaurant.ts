@@ -13,8 +13,8 @@ export class JohnnysBurgerBarRestaurantController {
   ) {
     res.contentType = "application/json";
     try {
-      const johnnysBurgerBar = new JohnnysBurgerBarRestaurant();
-      const availableTables = await johnnysBurgerBar.availableTables;
+      const JBBR = new JohnnysBurgerBarRestaurant();
+      const availableTables = await JBBR.availableTables;
 
       res.send({ code: 200, message: availableTables });
     } catch (error) {
