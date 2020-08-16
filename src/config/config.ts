@@ -1,5 +1,5 @@
 import * as process from "process";
-import { IEnvironmentOptions } from "./interfaces/environmentOptions.interface";
+import { IEnvironmentOptions } from "../interfaces/environmentOptions.interface";
 
 export class Config {
   public env: string;
