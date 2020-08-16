@@ -5,7 +5,7 @@ import { JohnnysBurgerBarRestaurantController } from "../controllers/johnnysBurg
 import { Auth } from "../middleware/auth";
 import { Routes } from "../routes/routes";
 import { RoutesConfig } from "../routes/routesConfig";
-import { Server } from "../server";
+import { Server } from "../services/server";
 
 export class Services {
   private config: Config | undefined;

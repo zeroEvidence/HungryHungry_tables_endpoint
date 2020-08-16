@@ -1,5 +1,5 @@
-import * as process from 'process';
-import { IEnvironmentOptions } from './interfaces/environmentOptions.interface';
+import * as process from "process";
+import { IEnvironmentOptions } from "../interfaces/environmentOptions.interface";
 
 export class Config {
   public env: string;
@@ -19,10 +19,10 @@ export class Config {
     certURI: certURI,
     keyURI: keyURI,
   }: IEnvironmentOptions = {}) {
-    this.env = env || process.env.NODE_ENV || 'development';
+    this.env = env || process.env.NODE_ENV || "development";
     this.port =
-      port || typeof process.env.PORT === 'string' ? +process.env.PORT! : 8080;
-    this.host = host || process.env.HOST || 'localhost';
+      port || typeof process.env.PORT === "string" ? +process.env.PORT! : 8080;
+    this.host = host || process.env.HOST || "localhost";
     this.authPassword = authPassword || process.env.AUTHPASSWORD || undefined;
     this.authUsername = authUsername || process.env.AUTHUSERNAME || undefined;
     this.certURI = certURI || process.env.CERTURI || undefined;

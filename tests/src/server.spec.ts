@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import { Config } from "../../src/config/config";
 import { IAvailableTables } from "../../src/interfaces/availableTables.interface";
 import { Services } from "../../src/modules/services";
-import { Server } from "../../src/server";
+import { Server } from "../../src/services/server";
 
 describe("Server", () => {
   let server: Server;

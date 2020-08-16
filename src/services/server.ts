@@ -1,5 +1,5 @@
 import * as restify from "restify";
-import { Config } from "./config/config";
+import { Config } from "../config/config";
 
 export class Server {
   constructor(private server: restify.Server, private config: Config) {
