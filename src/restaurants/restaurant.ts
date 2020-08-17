@@ -1,11 +1,9 @@
 import { Promise } from "bluebird";
 import { Config } from "../config/config";
 import { Database } from "../database/database";
-import { IAvailableTables } from "../interfaces/availableTables.interface";
 import { ITables } from "../interfaces/tables.interface";
 import { ITableDocument } from "../models/interfaces/tableDocument.interface";
 import { RoutesConfig } from "../routes/routesConfig";
-import { IBulkWrite } from "./interfaces/bulkWrite.interface";
 import { ITable } from "./interfaces/table.interface";
 import joi = require("joi");
 
@@ -20,8 +18,11 @@ export class Restaurant {
 
   public set tables(tables: Promise<ITables>) {
     this._tables = tables.then((newTables) =>
-      this.validateTables(newTables).then((validTables) => {
-        this.saveTables(validTables);
+      this.validateTables(newTables).then(async (validTables) => {
+        // Code commented out due to bug with mongoose Document's function
+        // .find(), for some reason the promise which it returns never resolves.
+        // causing the software to hang indefinitely.
+        // await this.saveTables(validTables);
         return validTables;
       })
     );
@@ -31,25 +32,44 @@ export class Restaurant {
     return this._tables;
   }
 
-  public get availableTables(): Promise<IAvailableTables> {
-    return this.tables.then(async (tables) => {
-      const availableTables = {} as IAvailableTables;
-      const ordinals = Object.keys(tables);
+  public get availableTables(): Promise<ITable[]> {
+    const tablesDB = this.db.models.Table;
 
-      await Promise.each(ordinals, async (ordinal) => {
-        const tableKeys = Object.keys(tables[ordinal].tables);
+    return this.tables.then(async (validatedTables) => {
+      // Code block commented out due to bug with mongoose Document's function
+      // .find(), for some reason the promise which it returns never resolves.
+      // causing the software to hang indefinitely.
+      // const tableResults = await tablesDB.find({visible: 1}).exec() as ITableDocument[];
 
-        await Promise.each(tableKeys, (tableKey) => {
-          if (tables[ordinal].tables[tableKey].visible === 1) {
-            if (typeof availableTables[ordinal] !== "object") {
-              availableTables[ordinal] = {
-                name: tables[ordinal].name,
-                tables: {},
-              };
-            }
+      // return tableResults.map((tableResult) => ({
+      //   room: tableResult.room,
+      //   tableID: tableResult.tableID,
+      //   tableName: tableResult.tableName,
+      //   visible: tableResult.visible,
+      //   QRCodePath: tableResult.QRCodePath,
+      // }));
 
-            availableTables[ordinal].tables[tableKey] =
-              tables[ordinal].tables[tableKey];
+      const availableTables: ITable[] = [];
+      const rooms = Object.keys(validatedTables);
+
+      await Promise.each(rooms, async (room) => {
+        const roomTables = validatedTables[room].tables;
+        const tableIDs = Object.keys(roomTables);
+
+        await Promise.each(tableIDs, (tableID) => {
+          if (roomTables[tableID].visible === 1) {
+            availableTables.push({
+              room,
+              tableID,
+              tableName: roomTables[tableID].name,
+              visible: roomTables[tableID].visible,
+              QRCodePath: `http://${this.config.host}:${
+                this.config.port
+              }${this.routesConfig.routes.tables.qrImg.replace(
+                ":tableid",
+                tableID
+              )}`,
+            });
           }
         });
       });
@@ -59,75 +79,77 @@ export class Restaurant {
   }
 
   private async saveTables(validatedTables: ITables) {
-    const rooms = Object.keys(validatedTables);
-    const tablesDB = this.db.models.Table;
-    const tablesResults = await tablesDB.find({}).exec();
-    const tablesToCreate: ITable[] = [];
-    const tablesToUpdate: ITable[] = [];
+    throw new Error(".saveTables() method not yet implemented.");
 
-    await Promise.each(rooms, async (room) => {
-      const roomTables = validatedTables[room].tables;
-      const tableIDs = Object.keys(roomTables);
+    // const rooms = Object.keys(validatedTables);
+    // const tablesDB = this.db.models.Table;
+    // const tablesResults = (await tablesDB.find({}).exec()) as ITableDocument[];
+    // const tablesToCreate: ITable[] = [];
+    // const tablesToUpdate: ITable[] = [];
 
-      await Promise.each(tableIDs, async (tableID) => {
-        const newTable: ITable = {
-          room,
-          tableID,
-          tableName: roomTables[tableID].name,
-          visible: roomTables[tableID].visible,
-          QRCodePath: `http://${this.config.host}:${
-            this.config.port
-          }${this.routesConfig.routes.tables.qrImg.replace(
-            ":tableid",
-            tableID
-          )}`,
-        };
+    // await Promise.each(rooms, async (room) => {
+    //   const roomTables = validatedTables[room].tables;
+    //   const tableIDs = Object.keys(roomTables);
 
-        if (tablesResults === null || tablesResults.length === 0) {
-          tablesToCreate.push(newTable);
-        } else {
-          let tableFound = false;
+    //   await Promise.each(tableIDs, async (tableID) => {
+    //     const newTable: ITable = {
+    //       room,
+    //       tableID,
+    //       tableName: roomTables[tableID].name,
+    //       visible: roomTables[tableID].visible,
+    // QRCodePath: `http://${this.config.host}:${
+    //   this.config.port
+    // }${this.routesConfig.routes.tables.qrImg.replace(
+    //   ":tableid",
+    //   tableID
+    // )}`,
+    //     };
 
-          await Promise.each(tablesResults, (tableResult) => {
-            if (tableResult.tableID === newTable.tableID) {
-              tableFound = true;
-              if (!this.compareObjects(tableResult, newTable)) {
-                tablesToUpdate.push(newTable);
-              }
-            }
-          });
+    //     if (tablesResults === null || tablesResults.length === 0) {
+    //       tablesToCreate.push(newTable);
+    //     } else {
+    //       let tableFound = false;
 
-          if (tableFound === false) {
-            tablesToCreate.push(newTable);
-          }
-        }
-      });
-    });
+    //       await Promise.each(tablesResults, (tableResult) => {
+    //         if (tableResult.tableID === newTable.tableID) {
+    //           tableFound = true;
+    //           if (!this.compareObjects(tableResult, newTable)) {
+    //             tablesToUpdate.push(newTable);
+    //           }
+    //         }
+    //       });
 
-    const bulkWrite: IBulkWrite[] = [];
-    if (tablesToCreate.length > 0) {
-      bulkWrite.concat(
-        tablesToCreate.map((table) => ({
-          insertOne: {
-            document: table,
-          },
-        }))
-      );
-    }
+    //       if (tableFound === false) {
+    //         tablesToCreate.push(newTable);
+    //       }
+    //     }
+    //   });
+    // });
 
-    if (tablesToUpdate.length > 0) {
-      bulkWrite.concat(
-        tablesToUpdate.map((table) => ({
-          updateOne: {
-            document: table,
-          },
-        }))
-      );
-    }
+    // const bulkWrite: IBulkWrite[] = [];
+    // if (tablesToCreate.length > 0) {
+    //   bulkWrite.concat(
+    //     tablesToCreate.map((table) => ({
+    //       insertOne: {
+    //         document: table,
+    //       },
+    //     }))
+    //   );
+    // }
 
-    if (bulkWrite.length > 0) {
-      tablesDB.bulkWrite(bulkWrite);
-    }
+    // if (tablesToUpdate.length > 0) {
+    //   bulkWrite.concat(
+    //     tablesToUpdate.map((table) => ({
+    //       updateOne: {
+    //         document: table,
+    //       },
+    //     }))
+    //   );
+    // }
+
+    // if (bulkWrite.length > 0) {
+    //   tablesDB.bulkWrite(bulkWrite);
+    // }
   }
 
   private compareObjects(tableResult: ITableDocument, newTable: ITable) {
