@@ -2,6 +2,7 @@ import { readFileSync } from "fs";
 import * as restify from "restify";
 import { Config } from "../config/config";
 import { JohnnysBurgerBarRestaurantController } from "../controllers/johnnysBurgerBarRestaurant";
+import { QRCodeController } from "../controllers/qrCode";
 import { Database } from "../database/database";
 import { Auth } from "../middleware/auth";
 import { Routes } from "../routes/routes";
@@ -15,6 +16,7 @@ export class Services {
   private restifyServer: restify.Server | undefined;
   private routes: Routes | undefined;
   private JBBRController: JohnnysBurgerBarRestaurantController | undefined;
+  private QRCodeController: QRCodeController | undefined;
   private routesConfig: RoutesConfig | undefined;
   private database: Database | undefined;
 
@@ -100,6 +102,16 @@ export class Services {
     return this.JBBRController;
   }
 
+  public getQRCodeController() {
+    if (this.QRCodeController) {
+      return this.QRCodeController;
+    }
+
+    this.QRCodeController = new QRCodeController();
+
+    return this.QRCodeController;
+  }
+
   public getRoutes() {
     if (this.routes) {
       return this.routes;
@@ -108,7 +120,8 @@ export class Services {
     this.routes = new Routes(
       this.getRestifyServer(),
       this.getRoutesConfig(),
-      this.getJBBRController()
+      this.getJBBRController(),
+      this.getQRCodeController()
     );
 
     return this.routes;
