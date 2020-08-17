@@ -10,7 +10,7 @@ export class Routes {
   ) {
     this.server.get(
       this.routesConfig.routes.tables.johnnysBurgerBar,
-      this.JBBRController.tables
+      this.JBBRController.tables.bind(this.JBBRController)
     );
   }
 }

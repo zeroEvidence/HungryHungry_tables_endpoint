@@ -37,10 +37,13 @@
     "@types/bluebird": "^3.5.32",
     "@types/debug": "^4.1.5",
     "@types/joi": "^14.3.4",
+    "@types/mongoose": "^5.7.36",
     "@types/node-fetch": "^2.5.7",
     "bluebird": "^3.7.2",
     "debug": "^4.1.1",
     "joi": "^17.2.0",
+    "mongoose": "^5.10.0",
+    "mongoose-timestamp": "^0.6.0",
     "node-fetch": "^2.6.0",
     "restify": "^8.5.1"
   },

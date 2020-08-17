@@ -6,4 +6,5 @@ export interface IEnvironmentOptions {
   authUsername?: string | undefined;
   certURI?: string | undefined;
   keyURI?: string | undefined;
+  mongoDBURI?: string | undefined;
 }

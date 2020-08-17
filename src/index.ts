@@ -2,10 +2,15 @@ import dbg from "debug";
 import { inspect } from "util";
 import { Services } from "./modules/services";
 
-const services = new Services();
-const server = services.getServer();
+(async () => {
+  const services = new Services();
 
-server.start();
+  await services.boot();
+
+  const server = services.getServer();
+
+  server.start();
+})();
 
 const flush = dbg("server-error");
 

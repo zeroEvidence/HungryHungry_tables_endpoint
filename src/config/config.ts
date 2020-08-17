@@ -1,5 +1,5 @@
 import * as process from "process";
-import { IEnvironmentOptions } from "../interfaces/environmentOptions.interface";
+import { IEnvironmentOptions } from "./interfaces/environmentOptions.interface";
 
 export class Config {
   public env: string;
@@ -9,6 +9,7 @@ export class Config {
   public authUsername: string | undefined;
   public certURI: string | undefined;
   public keyURI: string | undefined;
+  public mongoDBURI: string;
 
   constructor({
     env: env,
@@ -18,6 +19,7 @@ export class Config {
     authUsername: authUsername,
     certURI: certURI,
     keyURI: keyURI,
+    mongoDBURI: mongoDBURI,
   }: IEnvironmentOptions = {}) {
     this.env = env || process.env.NODE_ENV || "development";
     this.port =
@@ -27,5 +29,9 @@ export class Config {
     this.authUsername = authUsername || process.env.AUTHUSERNAME || undefined;
     this.certURI = certURI || process.env.CERTURI || undefined;
     this.keyURI = keyURI || process.env.KEYURI || undefined;
+    this.mongoDBURI =
+      mongoDBURI ||
+      process.env.MONGODBURI ||
+      "mongodb://localhost:27017/hungryhungry";
   }
 }

@@ -2,6 +2,7 @@ import { readFileSync } from "fs";
 import * as restify from "restify";
 import { Config } from "../config/config";
 import { JohnnysBurgerBarRestaurantController } from "../controllers/johnnysBurgerBarRestaurant";
+import { Database } from "../database/database";
 import { Auth } from "../middleware/auth";
 import { Routes } from "../routes/routes";
 import { RoutesConfig } from "../routes/routesConfig";
@@ -15,9 +16,14 @@ export class Services {
   private routes: Routes | undefined;
   private JBBRController: JohnnysBurgerBarRestaurantController | undefined;
   private routesConfig: RoutesConfig | undefined;
+  private database: Database | undefined;
 
   constructor(config: Config = new Config()) {
     this.config = config;
+  }
+
+  public async boot() {
+    await this.getDatabase().start();
   }
 
   public getConfig() {
@@ -28,6 +34,16 @@ export class Services {
     this.config = new Config();
 
     return this.config;
+  }
+
+  public getDatabase() {
+    if (this.database) {
+      return this.database;
+    }
+
+    this.database = new Database(this.getConfig());
+
+    return this.database;
   }
 
   public getAuth() {
@@ -76,7 +92,10 @@ export class Services {
       return this.JBBRController;
     }
 
-    this.JBBRController = new JohnnysBurgerBarRestaurantController();
+    this.JBBRController = new JohnnysBurgerBarRestaurantController(
+      this.getDatabase(),
+      this.getConfig()
+    );
 
     return this.JBBRController;
   }
