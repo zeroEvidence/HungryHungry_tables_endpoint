@@ -1,17 +1,30 @@
-import { Promise } from 'bluebird';
-import { IAvailableTables } from '../interfaces/availableTables.interface';
-import { ITables } from '../interfaces/tables.interface';
-import joi = require('joi');
+import { Promise } from "bluebird";
+import { Config } from "../config/config";
+import { Database } from "../database/database";
+import { IAvailableTables } from "../interfaces/availableTables.interface";
+import { ITables } from "../interfaces/tables.interface";
+import { ITableDocument } from "../models/interfaces/tableDocument.interface";
+import { RoutesConfig } from "../routes/routesConfig";
+import { IBulkWrite } from "./interfaces/bulkWrite.interface";
+import { ITable } from "./interfaces/table.interface";
+import joi = require("joi");
 
 export class Restaurant {
   private _tables: Promise<ITables>;
+  private routesConfig: RoutesConfig;
 
-  constructor() {
+  constructor(private db: Database, private config: Config) {
     this._tables = Promise.resolve({});
+    this.routesConfig = new RoutesConfig();
   }
 
   public set tables(tables: Promise<ITables>) {
-    this._tables = tables.then((newTables) => this.validateTables(newTables));
+    this._tables = tables.then((newTables) =>
+      this.validateTables(newTables).then((validTables) => {
+        this.saveTables(validTables);
+        return validTables;
+      })
+    );
   }
 
   public get tables(): Promise<ITables> {
@@ -28,7 +41,7 @@ export class Restaurant {
 
         await Promise.each(tableKeys, (tableKey) => {
           if (tables[ordinal].tables[tableKey].visible === 1) {
-            if (typeof availableTables[ordinal] !== 'object') {
+            if (typeof availableTables[ordinal] !== "object") {
               availableTables[ordinal] = {
                 name: tables[ordinal].name,
                 tables: {},
@@ -45,31 +58,117 @@ export class Restaurant {
     });
   }
 
+  private async saveTables(validatedTables: ITables) {
+    const rooms = Object.keys(validatedTables);
+    const tablesDB = this.db.models.Table;
+    const tablesResults = await tablesDB.find({}).exec();
+    const tablesToCreate: ITable[] = [];
+    const tablesToUpdate: ITable[] = [];
+
+    await Promise.each(rooms, async (room) => {
+      const roomTables = validatedTables[room].tables;
+      const tableIDs = Object.keys(roomTables);
+
+      await Promise.each(tableIDs, async (tableID) => {
+        const newTable: ITable = {
+          room,
+          tableID,
+          tableName: roomTables[tableID].name,
+          visible: roomTables[tableID].visible,
+          QRCodePath: `http://${this.config.host}:${
+            this.config.port
+          }${this.routesConfig.routes.tables.qrImg.replace(
+            ":tableid",
+            tableID
+          )}`,
+        };
+
+        if (tablesResults === null || tablesResults.length === 0) {
+          tablesToCreate.push(newTable);
+        } else {
+          let tableFound = false;
+
+          await Promise.each(tablesResults, (tableResult) => {
+            if (tableResult.tableID === newTable.tableID) {
+              tableFound = true;
+              if (!this.compareObjects(tableResult, newTable)) {
+                tablesToUpdate.push(newTable);
+              }
+            }
+          });
+
+          if (tableFound === false) {
+            tablesToCreate.push(newTable);
+          }
+        }
+      });
+    });
+
+    const bulkWrite: IBulkWrite[] = [];
+    if (tablesToCreate.length > 0) {
+      bulkWrite.concat(
+        tablesToCreate.map((table) => ({
+          insertOne: {
+            document: table,
+          },
+        }))
+      );
+    }
+
+    if (tablesToUpdate.length > 0) {
+      bulkWrite.concat(
+        tablesToUpdate.map((table) => ({
+          updateOne: {
+            document: table,
+          },
+        }))
+      );
+    }
+
+    if (bulkWrite.length > 0) {
+      tablesDB.bulkWrite(bulkWrite);
+    }
+  }
+
+  private compareObjects(tableResult: ITableDocument, newTable: ITable) {
+    if (
+      tableResult.room === newTable.room &&
+      tableResult.tableID === newTable.tableID &&
+      tableResult.tableName === newTable.tableName &&
+      tableResult.visible === newTable.visible &&
+      tableResult.QRCodePath === newTable.QRCodePath
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
   private validateTables(tables: ITables): Promise<ITables> {
     // Validate as much as we can, joi can't validate the inner "tables" object
     // as it appears to have variable keys.
     const tablesSchema = joi.object().keys({
       Front: joi
         .object({
-          name: joi.string().valid('Front').required(),
+          name: joi.string().valid("Front").required(),
           tables: joi.object().required(),
           active_tables: joi.number().integer().min(0).required(),
-          is_legacy: joi.string().valid('false', 'true').required(),
+          is_legacy: joi.string().valid("false", "true").required(),
         })
         .required(),
       Back: joi
         .object({
-          name: joi.string().valid('Back').required(),
+          name: joi.string().valid("Back").required(),
           tables: joi.object().required(),
           active_tables: joi.number().integer().min(0).required(),
-          is_legacy: joi.string().valid('false', 'true').required(),
+          is_legacy: joi.string().valid("false", "true").required(),
         })
         .required(),
       A: joi.object({
-        name: joi.string().valid('A').required(),
+        name: joi.string().valid("A").required(),
         tables: joi.object().required(),
         active_tables: joi.number().integer().min(0).required(),
-        is_legacy: joi.string().valid('false', 'true').required(),
+        is_legacy: joi.string().valid("false", "true").required(),
       }),
     });
     // schema to check the tables keys.

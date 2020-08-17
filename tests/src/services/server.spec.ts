@@ -1,11 +1,13 @@
 import fetch from "node-fetch";
 import { Config } from "../../../src/config/config";
+import { Database } from "../../../src/database/database";
 import { IAvailableTables } from "../../../src/interfaces/availableTables.interface";
 import { Services } from "../../../src/modules/services";
 import { Server } from "../../../src/services/server";
 
 describe("Server", () => {
   let server: Server;
+  let db: Database;
   let expectedAvailableTables: IAvailableTables;
 
   beforeEach(() => {
@@ -74,18 +76,21 @@ describe("Server", () => {
     };
   });
 
-  beforeAll((done) => {
+  beforeAll(async (done) => {
     const spaceballsAccessCodesToDruidia = "12345";
     const config = new Config({
       authPassword: spaceballsAccessCodesToDruidia,
       authUsername: "test",
     });
     const services = new Services(config);
+    await services.boot();
+    db = services.getDatabase();
     server = services.getServer();
     server.start(done);
   });
 
-  afterAll((done) => {
+  afterAll(async (done) => {
+    await db.stop();
     server.stop(done);
   });
 

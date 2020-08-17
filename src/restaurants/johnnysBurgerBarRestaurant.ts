@@ -1,12 +1,16 @@
-import fetch from 'node-fetch';
-import { ITables } from '../interfaces/tables.interface';
-import { Restaurant } from './restaurant';
+import fetch from "node-fetch";
+import { Config } from "../config/config";
+import { Database } from "../database/database";
+import { ITables } from "../interfaces/tables.interface";
+import { Restaurant } from "./restaurant";
 
 export class JohnnysBurgerBarRestaurant extends Restaurant {
   constructor(
-    private tablesURI = 'https://hungryhungry.com/helping-hospo/hh_test_tabledata.json'
+    db: Database,
+    config: Config,
+    private tablesURI = "https://hungryhungry.com/helping-hospo/hh_test_tabledata.json"
   ) {
-    super();
+    super(db, config);
 
     this.tables = this.fetchTables();
   }

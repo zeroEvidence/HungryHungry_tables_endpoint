@@ -1,11 +1,26 @@
+import { Config } from "../../../src/config/config";
+import { Database } from "../../../src/database/database";
 import { IAvailableTables } from "../../../src/interfaces/availableTables.interface";
 import { ITables } from "../../../src/interfaces/tables.interface";
+import { Services } from "../../../src/modules/services";
 import { JohnnysBurgerBarRestaurant } from "../../../src/restaurants/johnnysBurgerBarRestaurant";
 
 describe("JohnnysBurgerBarRestaurant", () => {
   let JBBR: JohnnysBurgerBarRestaurant;
   let expectedAvailableTables: IAvailableTables;
   let tables: ITables;
+  let db: Database;
+  let config: Config;
+
+  beforeAll(() => {
+    const service = new Services();
+    db = service.getDatabase();
+    config = service.getConfig();
+  });
+
+  afterAll(() => {
+    db.stop();
+  });
 
   beforeEach((done) => {
     expectedAvailableTables = {
@@ -159,7 +174,7 @@ describe("JohnnysBurgerBarRestaurant", () => {
       },
     };
 
-    JBBR = new JohnnysBurgerBarRestaurant();
+    JBBR = new JohnnysBurgerBarRestaurant(db, config);
 
     JBBR.tables.then(() => {
       done();
