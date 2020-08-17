@@ -42,7 +42,6 @@
     "bluebird": "^3.7.2",
     "debug": "^4.1.1",
     "joi": "^17.2.0",
-    "mariadb": "^2.4.2",
     "mongoose": "^5.10.0",
     "mongoose-timestamp": "^0.6.0",
     "node-fetch": "^2.6.0",
