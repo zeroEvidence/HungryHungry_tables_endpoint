@@ -7,8 +7,8 @@ export class Server {
   }
 
   public start(cb = () => undefined) {
-    this.server.listen(this.config.port, this.config.host, () => {
-      console.log("%s listening at %s", this.server.name, this.server.url);
+    this.server.listen(this.config.port, this.config.dockerHost, () => {
+      console.log('%s listening at %s', this.server.name, this.server.url);
       cb();
     });
   }

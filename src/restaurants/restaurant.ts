@@ -63,7 +63,7 @@ export class Restaurant {
               tableID,
               tableName: roomTables[tableID].name,
               visible: roomTables[tableID].visible,
-              QRCodePath: `http://${this.config.host}:${
+              QRCodePath: `http://${this.config.localHost}:${
                 this.config.port
               }${this.routesConfig.routes.tables.qrCode.replace(
                 ":tableid",

@@ -1,7 +1,8 @@
 export interface IEnvironmentOptions {
   env?: string | undefined;
   port?: number | undefined;
-  host?: string | undefined;
+  localHost?: string;
+  dockerHost?: string;
   authPassword?: string | undefined;
   authUsername?: string | undefined;
   certURI?: string | undefined;
