@@ -5,6 +5,7 @@ import { JohnnysBurgerBarRestaurantController } from "../controllers/johnnysBurg
 import { QRCodeController } from "../controllers/qrCode";
 import { Database } from "../database/database";
 import { Auth } from "../middleware/auth";
+import { Cors } from "../middleware/cors";
 import { Routes } from "../routes/routes";
 import { RoutesConfig } from "../routes/routesConfig";
 import { Server } from "../services/server";
@@ -13,6 +14,7 @@ export class Services {
   private config: Config | undefined;
   private server: Server | undefined;
   private auth: Auth | undefined;
+  private cors: Cors | undefined;
   private restifyServer: restify.Server | undefined;
   private routes: Routes | undefined;
   private JBBRController: JohnnysBurgerBarRestaurantController | undefined;
@@ -56,6 +58,16 @@ export class Services {
     this.auth = new Auth(this.getRestifyServer(), this.getConfig());
 
     return this.auth;
+  }
+
+  public getCors() {
+    if (this.cors) {
+      return this.cors;
+    }
+
+    this.cors = new Cors(this.getRestifyServer(), this.getConfig());
+
+    return this.cors;
   }
 
   public getRestifyServer() {
@@ -133,6 +145,7 @@ export class Services {
     }
 
     this.getAuth();
+    this.getCors();
     this.getRoutes();
     this.server = new Server(this.getRestifyServer(), this.getConfig());
 

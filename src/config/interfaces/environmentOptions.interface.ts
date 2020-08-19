@@ -8,4 +8,5 @@ export interface IEnvironmentOptions {
   certURI?: string | undefined;
   keyURI?: string | undefined;
   mongoDBURI?: string | undefined;
+  origins?: string | undefined;
 }
