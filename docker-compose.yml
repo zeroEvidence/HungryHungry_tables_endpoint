@@ -13,4 +13,8 @@ services:
       - database
 
   database:
-    image: mongo
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: abc123
+      MYSQL_DATABASE: hungryhungry
