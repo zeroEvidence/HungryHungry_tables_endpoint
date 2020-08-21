@@ -1,3 +1,4 @@
+import { Logger } from "winston";
 import { Config } from "../../../src/config/config";
 import { Database } from "../../../src/database/database";
 import { ITable } from "../../../src/interfaces/table.interface";
@@ -13,6 +14,7 @@ describe("JohnnysBurgerBarRestaurant", () => {
   let tableRepo: TableRepository;
   let db: Database;
   let config: Config;
+  let logger: Logger;
 
   beforeAll(async () => {
     const service = new Services();
@@ -20,6 +22,7 @@ describe("JohnnysBurgerBarRestaurant", () => {
     tableRepo = await service.getTableRepository();
     db = service.getDatabase();
     config = service.getConfig();
+    logger = service.getLogger();
   });
 
   afterAll((done) => {
@@ -474,7 +477,7 @@ describe("JohnnysBurgerBarRestaurant", () => {
       },
     };
 
-    JBBR = new JohnnysBurgerBarRestaurant(tableRepo, config);
+    JBBR = new JohnnysBurgerBarRestaurant(tableRepo, config, logger);
 
     JBBR.tables.then(() => {
       done();

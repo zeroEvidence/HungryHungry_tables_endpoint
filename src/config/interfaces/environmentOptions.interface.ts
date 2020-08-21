@@ -1,4 +1,5 @@
 import { PoolConfig } from "mariadb";
+import { IWinstonEnvironmentOptions } from "./winstonEnvironmentOptions.interface";
 
 export interface IEnvironmentOptions {
   env?: string | undefined;
@@ -11,4 +12,6 @@ export interface IEnvironmentOptions {
   keyURI?: string | undefined;
   origins?: string | undefined;
   mariaDB?: PoolConfig | undefined;
+  database?: string | undefined;
+  winston?: IWinstonEnvironmentOptions | undefined;
 }

@@ -1,5 +1,6 @@
 import { readFileSync } from "fs";
 import * as restify from "restify";
+import { createLogger, format, Logger, transport, transports } from "winston";
 import { Config } from "../config/config";
 import { JohnnysBurgerBarRestaurantController } from "../controllers/johnnysBurgerBarRestaurant";
 import { QRCodeController } from "../controllers/qrCode";
@@ -11,6 +12,7 @@ import { JohnnysBurgerBarRestaurant } from "../restaurants/johnnysBurgerBarResta
 import { Routes } from "../routes/routes";
 import { RoutesConfig } from "../routes/routesConfig";
 import { Server } from "../services/server";
+import { WinstonMariaDBTransport } from "../utils/winstonMariaDBTransport";
 
 export class Services {
   private config: Config | undefined;
@@ -19,12 +21,13 @@ export class Services {
   private cors: Cors | undefined;
   private restifyServer: restify.Server | undefined;
   private routes: Routes | undefined;
-  private JBBRController: JohnnysBurgerBarRestaurantController | undefined;
-  private QRCodeController: QRCodeController | undefined;
+  private jbbrController: JohnnysBurgerBarRestaurantController | undefined;
+  private qrCodeController: QRCodeController | undefined;
   private routesConfig: RoutesConfig | undefined;
   private database: Database | undefined;
   private tableRepository: TableRepository | undefined;
   private jbbr: JohnnysBurgerBarRestaurant | undefined;
+  private logger: Logger | undefined;
 
   constructor(config: Config = new Config()) {
     this.config = config;
@@ -64,6 +67,66 @@ export class Services {
     return this.database;
   }
 
+  public getLogger() {
+    if (this.logger) {
+      return this.logger;
+    }
+
+    const config = this.getConfig();
+    const transportsOptions: transport[] = [];
+
+    if (
+      config.winston.transports?.some(
+        (transportType) => transportType === "file"
+      ) &&
+      typeof config.winston.fileLogLevel === "string" &&
+      typeof config.winston.fileLogPath === "string"
+    ) {
+      transportsOptions.push(
+        new transports.File({
+          filename: config.winston.fileLogPath,
+          level: config.winston.fileLogLevel,
+        })
+      );
+    }
+
+    if (
+      config.winston.transports?.some(
+        (transportType) => transportType === "console"
+      ) &&
+      typeof config.winston.consoleLogLevel === "string"
+    ) {
+      transportsOptions.push(
+        new transports.Console({
+          level: config.winston.consoleLogLevel,
+        })
+      );
+    }
+
+    if (
+      config.winston.transports?.some(
+        (transportType) => transportType === "database"
+      ) &&
+      typeof config.winston.databaseLogLevel === "string"
+    ) {
+      transportsOptions.push(
+        new WinstonMariaDBTransport({
+          databasePool: this.getDatabase().pool,
+          databaseName: this.getConfig().database,
+          level: "debug",
+          tableName: "logs",
+        })
+      );
+    }
+
+    this.logger = createLogger({
+      format: format.combine(format.timestamp(), format.json()),
+      transports: transportsOptions,
+    });
+
+    return this.logger;
+  }
+
   public async getTableRepository() {
     if (this.tableRepository) {
       return this.tableRepository;
@@ -71,7 +134,8 @@ export class Services {
 
     this.tableRepository = new TableRepository(
       this.getDatabase(),
-      this.getConfig()
+      this.getConfig(),
+      this.getLogger()
     );
 
     await this.tableRepository.setup();
@@ -136,36 +200,41 @@ export class Services {
     }
 
     const tableRepo = await this.getTableRepository();
-    this.jbbr = new JohnnysBurgerBarRestaurant(tableRepo, this.getConfig());
+    this.jbbr = new JohnnysBurgerBarRestaurant(
+      tableRepo,
+      this.getConfig(),
+      this.getLogger()
+    );
 
     return this.jbbr;
   }
 
   public async getJBBRController() {
-    if (this.JBBRController) {
-      return this.JBBRController;
+    if (this.jbbrController) {
+      return this.jbbrController;
     }
 
     const tableRepo = await this.getTableRepository();
 
-    this.JBBRController = new JohnnysBurgerBarRestaurantController(
+    this.jbbrController = new JohnnysBurgerBarRestaurantController(
       tableRepo,
-      this.getConfig()
+      this.getConfig(),
+      this.getLogger()
     );
 
-    return this.JBBRController;
+    return this.jbbrController;
   }
 
   public async getQRCodeController() {
-    if (this.QRCodeController) {
-      return this.QRCodeController;
+    if (this.qrCodeController) {
+      return this.qrCodeController;
     }
 
     const tableRepo = await this.getTableRepository();
 
-    this.QRCodeController = new QRCodeController(tableRepo);
+    this.qrCodeController = new QRCodeController(tableRepo, this.getLogger());
 
-    return this.QRCodeController;
+    return this.qrCodeController;
   }
 
   public async getRoutes() {
@@ -194,7 +263,11 @@ export class Services {
     this.getAuth();
     this.getCors();
     this.getRoutes();
-    this.server = new Server(this.getRestifyServer(), this.getConfig());
+    this.server = new Server(
+      this.getRestifyServer(),
+      this.getConfig(),
+      this.getLogger()
+    );
 
     return this.server;
   }

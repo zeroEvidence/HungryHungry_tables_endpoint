@@ -1,9 +1,10 @@
 import * as restify from "restify";
+import { Logger } from "winston";
 import { IQRCode } from "../interfaces/qrCode.interface";
 import { TableRepository } from "../repository/tableRepository";
 
 export class QRCodeController {
-  constructor(private tableRepo: TableRepository) {
+  constructor(private tableRepo: TableRepository, private logger: Logger) {
     //
   }
 
@@ -21,7 +22,8 @@ export class QRCodeController {
 
       res.send({ code: 200, message: qrData.QRCodeData });
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
+
       res.send({ code: 503, message: "Service Unavailable" });
     }
 
