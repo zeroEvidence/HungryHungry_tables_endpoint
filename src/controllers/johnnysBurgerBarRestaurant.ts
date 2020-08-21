@@ -1,10 +1,10 @@
 import * as restify from "restify";
 import { Config } from "../config/config";
-import { Database } from "../database/database";
+import { TableRepository } from "../repository/tableRepository";
 import { JohnnysBurgerBarRestaurant } from "../restaurants/johnnysBurgerBarRestaurant";
 
 export class JohnnysBurgerBarRestaurantController {
-  constructor(private db: Database, private config: Config) {
+  constructor(private tableRepo: TableRepository, private config: Config) {
     //
   }
 
@@ -15,7 +15,7 @@ export class JohnnysBurgerBarRestaurantController {
   ) {
     res.contentType = "application/json";
     try {
-      const JBBR = new JohnnysBurgerBarRestaurant(this.db, this.config);
+      const JBBR = new JohnnysBurgerBarRestaurant(this.tableRepo, this.config);
       const availableTables = await JBBR.availableTables;
 
       res.send({ code: 200, message: availableTables });

@@ -1,10 +1,9 @@
-import * as QRCode from "qrcode";
 import * as restify from "restify";
+import { IQRCode } from "../interfaces/qrCode.interface";
+import { TableRepository } from "../repository/tableRepository";
 
 export class QRCodeController {
-  constructor(
-    private baseUrl = "https://dev.hungryhungry.com/oceana2/menu?locationID=1995257&tableID="
-  ) {
+  constructor(private tableRepo: TableRepository) {
     //
   }
 
@@ -16,9 +15,11 @@ export class QRCodeController {
     res.contentType = "application/json";
 
     try {
-      const QR = await QRCode.toDataURL(`${this.baseUrl}${req.params.tableid}`);
+      const qrData: IQRCode = await this.tableRepo.getQRData(
+        req.params.tableid
+      );
 
-      res.send({ code: 200, message: QR });
+      res.send({ code: 200, message: qrData.QRCodeData });
     } catch (error) {
       console.error(error);
       res.send({ code: 503, message: "Service Unavailable" });

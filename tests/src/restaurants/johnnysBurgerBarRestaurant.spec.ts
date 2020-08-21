@@ -1,25 +1,29 @@
 import { Config } from "../../../src/config/config";
 import { Database } from "../../../src/database/database";
+import { ITable } from "../../../src/interfaces/table.interface";
 import { ITables } from "../../../src/interfaces/tables.interface";
 import { Services } from "../../../src/modules/services";
-import { ITable } from "../../../src/restaurants/interfaces/table.interface";
+import { TableRepository } from "../../../src/repository/tableRepository";
 import { JohnnysBurgerBarRestaurant } from "../../../src/restaurants/johnnysBurgerBarRestaurant";
 
 describe("JohnnysBurgerBarRestaurant", () => {
   let JBBR: JohnnysBurgerBarRestaurant;
   let expectedAvailableTables: ITable[];
   let tables: ITables;
+  let tableRepo: TableRepository;
   let db: Database;
   let config: Config;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     const service = new Services();
+    await service.boot();
+    tableRepo = await service.getTableRepository();
     db = service.getDatabase();
     config = service.getConfig();
   });
 
-  afterAll(() => {
-    db.stop();
+  afterAll((done) => {
+    db.stop(done);
   });
 
   beforeEach((done) => {
@@ -470,7 +474,7 @@ describe("JohnnysBurgerBarRestaurant", () => {
       },
     };
 
-    JBBR = new JohnnysBurgerBarRestaurant(db, config);
+    JBBR = new JohnnysBurgerBarRestaurant(tableRepo, config);
 
     JBBR.tables.then(() => {
       done();
@@ -488,7 +492,6 @@ describe("JohnnysBurgerBarRestaurant", () => {
   describe("set tables", () => {
     test("Should set the tables data when given valid data", async () => {
       JBBR.tables = Promise.resolve(tables);
-
       const receivedTables = await JBBR.tables;
 
       expect(receivedTables).toEqual(tables);

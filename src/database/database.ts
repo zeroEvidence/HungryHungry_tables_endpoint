@@ -1,42 +1,49 @@
-import { Promise } from "bluebird";
-import { connect, connection, Connection } from "mongoose";
+import { createPool, Pool, PoolConfig, PoolConnection } from "mariadb";
 import { Config } from "../config/config";
-import { Table } from "../models/table";
-import { IModels } from "./interfaces/models.interface";
 
 export class Database {
-  private db: Connection;
-  private _models: IModels;
+  private _pool: Pool;
+  private _connection: Promise<PoolConnection>;
 
   constructor(private config: Config = new Config()) {
-    this.db = connection;
-
-    this._models = {
-      Table: new Table().model,
+    const poolConfig: PoolConfig = {
+      rowsAsArray: false,
+      timezone: "Z",
+      namedPlaceholders: true,
+      ...this.config.mariaDB,
     };
+
+    this._pool = createPool(poolConfig);
+    this._connection = this._pool.getConnection();
   }
 
-  public start() {
-    return new Promise((resolve, reject) => {
-      this.db.on("error", (err) => {
+  public start(done = () => undefined) {
+    this._connection
+      .then((connection) => {
+        console.log(
+          `Connected to database. Connection id is: ${connection.threadId}`
+        );
+      })
+      .catch((err) => {
         console.error(err);
-        reject(err);
-      });
-
-      this.db.once("open", () => {
-        console.log(`mongoose connected to ${this.config.mongoDBURI}`);
-        resolve();
-      });
-
-      connect(this.config.mongoDBURI, { poolSize: 10, useNewUrlParser: true });
-    });
+      })
+      .finally(done);
   }
 
-  public stop() {
-    return this.db.close();
+  public stop(done = () => undefined) {
+    return this._pool
+      .end()
+      .then(() => {
+        console.log("Connection to the database as ended gracefully.");
+      })
+      .finally(done);
   }
 
-  public get models() {
-    return this._models;
+  public get pool() {
+    return this._pool;
+  }
+
+  public get connection() {
+    return this._connection;
   }
 }
