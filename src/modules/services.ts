@@ -6,6 +6,8 @@ import { QRCodeController } from "../controllers/qrCode";
 import { Database } from "../database/database";
 import { Auth } from "../middleware/auth";
 import { Cors } from "../middleware/cors";
+import { TableRepository } from "../repository/tableRepository";
+import { JohnnysBurgerBarRestaurant } from "../restaurants/johnnysBurgerBarRestaurant";
 import { Routes } from "../routes/routes";
 import { RoutesConfig } from "../routes/routesConfig";
 import { Server } from "../services/server";
@@ -21,6 +23,8 @@ export class Services {
   private QRCodeController: QRCodeController | undefined;
   private routesConfig: RoutesConfig | undefined;
   private database: Database | undefined;
+  private tableRepository: TableRepository | undefined;
+  private jbbr: JohnnysBurgerBarRestaurant | undefined;
 
   constructor(config: Config = new Config()) {
     this.config = config;
@@ -28,6 +32,16 @@ export class Services {
 
   public async boot() {
     await this.getDatabase().start();
+
+    // This will fetch the tables from the HungryHungry endpoint
+    // and save them to the database along with their QRCodes data.
+    const jbbr = await this.getJBBR();
+    const oneHour = 1000 * 60 * 60;
+
+    // This will do the above every hour.
+    setInterval(() => {
+      jbbr.fetchTables();
+    }, oneHour);
   }
 
   public getConfig() {
@@ -48,6 +62,21 @@ export class Services {
     this.database = new Database(this.getConfig());
 
     return this.database;
+  }
+
+  public async getTableRepository() {
+    if (this.tableRepository) {
+      return this.tableRepository;
+    }
+
+    this.tableRepository = new TableRepository(
+      this.getDatabase(),
+      this.getConfig()
+    );
+
+    await this.tableRepository.setup();
+
+    return this.tableRepository;
   }
 
   public getAuth() {
@@ -101,39 +130,57 @@ export class Services {
     return this.routesConfig;
   }
 
-  public getJBBRController() {
+  public async getJBBR() {
+    if (this.jbbr) {
+      return this.jbbr;
+    }
+
+    const tableRepo = await this.getTableRepository();
+    this.jbbr = new JohnnysBurgerBarRestaurant(tableRepo, this.getConfig());
+
+    return this.jbbr;
+  }
+
+  public async getJBBRController() {
     if (this.JBBRController) {
       return this.JBBRController;
     }
 
+    const tableRepo = await this.getTableRepository();
+
     this.JBBRController = new JohnnysBurgerBarRestaurantController(
-      this.getDatabase(),
+      tableRepo,
       this.getConfig()
     );
 
     return this.JBBRController;
   }
 
-  public getQRCodeController() {
+  public async getQRCodeController() {
     if (this.QRCodeController) {
       return this.QRCodeController;
     }
 
-    this.QRCodeController = new QRCodeController();
+    const tableRepo = await this.getTableRepository();
+
+    this.QRCodeController = new QRCodeController(tableRepo);
 
     return this.QRCodeController;
   }
 
-  public getRoutes() {
+  public async getRoutes() {
     if (this.routes) {
       return this.routes;
     }
 
+    const JBBRController = await this.getJBBRController();
+    const QRController = await this.getQRCodeController();
+
     this.routes = new Routes(
       this.getRestifyServer(),
       this.getRoutesConfig(),
-      this.getJBBRController(),
-      this.getQRCodeController()
+      JBBRController,
+      QRController
     );
 
     return this.routes;

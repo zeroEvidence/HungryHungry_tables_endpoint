@@ -7,13 +7,21 @@ export class Server {
   }
 
   public start(cb = () => undefined) {
-    this.server.listen(this.config.port, this.config.dockerHost, () => {
-      console.log('%s listening at %s', this.server.name, this.server.url);
+    this.server.listen(this.config.port, this.config.restifyHost, () => {
+      console.log("%s listening at %s", this.server.name, this.server.url);
       cb();
     });
   }
 
   public stop(cb = () => undefined) {
-    this.server.close(cb);
+    this.server.close(() => {
+      console.log(
+        "%s closed and stopped listening at %s",
+        this.server.name,
+        this.server.url
+      );
+
+      cb();
+    });
   }
 }

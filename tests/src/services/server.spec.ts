@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
 import { Config } from "../../../src/config/config";
 import { Database } from "../../../src/database/database";
+import { ITable } from "../../../src/interfaces/table.interface";
 import { Services } from "../../../src/modules/services";
-import { ITable } from "../../../src/restaurants/interfaces/table.interface";
 import { Server } from "../../../src/services/server";
 
 describe("Server", () => {
@@ -379,6 +379,7 @@ describe("Server", () => {
       authUsername: "test",
     });
     const services = new Services(config);
+
     await services.boot();
     db = services.getDatabase();
     server = services.getServer();
