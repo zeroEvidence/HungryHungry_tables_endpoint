@@ -1,7 +1,7 @@
 import * as restify from "restify";
-import { Logger } from "winston";
 import { IQRCode } from "../interfaces/qrCode.interface";
 import { TableRepository } from "../repository/tableRepository";
+import { Logger } from "../utils/logger";
 
 export class QRCodeController {
   constructor(private tableRepo: TableRepository, private logger: Logger) {
@@ -18,6 +18,10 @@ export class QRCodeController {
     try {
       const qrData: IQRCode = await this.tableRepo.getQRData(
         req.params.tableid
+      );
+
+      this.logger.info(
+        `responding with QRDate for tableID: ${req.params.tableid}`
       );
 
       res.send({ code: 200, message: qrData.QRCodeData });

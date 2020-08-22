@@ -1,8 +1,8 @@
 import * as restify from "restify";
-import { Logger } from "winston";
 import { Config } from "../config/config";
 import { TableRepository } from "../repository/tableRepository";
 import { JohnnysBurgerBarRestaurant } from "../restaurants/johnnysBurgerBarRestaurant";
+import { Logger } from "../utils/logger";
 
 export class JohnnysBurgerBarRestaurantController {
   constructor(
@@ -26,6 +26,8 @@ export class JohnnysBurgerBarRestaurantController {
         this.logger
       );
       const availableTables = await JBBR.availableTables;
+
+      this.logger.info("responding with available tables");
 
       res.send({ code: 200, message: availableTables });
     } catch (error) {

@@ -1,18 +1,20 @@
 import { readFileSync } from "fs";
 import * as restify from "restify";
-import { createLogger, format, Logger, transport, transports } from "winston";
 import { Config } from "../config/config";
+import { ILoggerEnvironmentOptions } from "../config/interfaces/loggerEnvironmentOptions.interface";
 import { JohnnysBurgerBarRestaurantController } from "../controllers/johnnysBurgerBarRestaurant";
 import { QRCodeController } from "../controllers/qrCode";
 import { Database } from "../database/database";
 import { Auth } from "../middleware/auth";
 import { Cors } from "../middleware/cors";
+import { RequestLogger } from "../middleware/requestLogger";
 import { TableRepository } from "../repository/tableRepository";
 import { JohnnysBurgerBarRestaurant } from "../restaurants/johnnysBurgerBarRestaurant";
 import { Routes } from "../routes/routes";
 import { RoutesConfig } from "../routes/routesConfig";
 import { Server } from "../services/server";
-import { WinstonMariaDBTransport } from "../utils/winstonMariaDBTransport";
+import { IMariaDBTransportOptions } from "../utils/interfaces/mariaDBTransportOptions.interface";
+import { Logger } from "../utils/logger";
 
 export class Services {
   private config: Config | undefined;
@@ -28,6 +30,7 @@ export class Services {
   private tableRepository: TableRepository | undefined;
   private jbbr: JohnnysBurgerBarRestaurant | undefined;
   private logger: Logger | undefined;
+  private reqLogger: RequestLogger | undefined;
 
   constructor(config: Config = new Config()) {
     this.config = config;
@@ -73,56 +76,14 @@ export class Services {
     }
 
     const config = this.getConfig();
-    const transportsOptions: transport[] = [];
+    const loggerOptions: ILoggerEnvironmentOptions &
+      IMariaDBTransportOptions = {
+      databasePool: this.getDatabase().pool,
+      databaseName: config.database,
+      ...config.logger,
+    };
 
-    if (
-      config.winston.transports?.some(
-        (transportType) => transportType === "file"
-      ) &&
-      typeof config.winston.fileLogLevel === "string" &&
-      typeof config.winston.fileLogPath === "string"
-    ) {
-      transportsOptions.push(
-        new transports.File({
-          filename: config.winston.fileLogPath,
-          level: config.winston.fileLogLevel,
-        })
-      );
-    }
-
-    if (
-      config.winston.transports?.some(
-        (transportType) => transportType === "console"
-      ) &&
-      typeof config.winston.consoleLogLevel === "string"
-    ) {
-      transportsOptions.push(
-        new transports.Console({
-          level: config.winston.consoleLogLevel,
-        })
-      );
-    }
-
-    if (
-      config.winston.transports?.some(
-        (transportType) => transportType === "database"
-      ) &&
-      typeof config.winston.databaseLogLevel === "string"
-    ) {
-      transportsOptions.push(
-        new WinstonMariaDBTransport({
-          databasePool: this.getDatabase().pool,
-          databaseName: this.getConfig().database,
-          level: "debug",
-          tableName: "logs",
-        })
-      );
-    }
-
-    this.logger = createLogger({
-      format: format.combine(format.timestamp(), format.json()),
-      transports: transportsOptions,
-    });
+    this.logger = new Logger(loggerOptions);
 
     return this.logger;
   }
@@ -143,12 +104,29 @@ export class Services {
     return this.tableRepository;
   }
 
+  public getReqLogger() {
+    if (this.reqLogger) {
+      return this.reqLogger;
+    }
+
+    this.reqLogger = new RequestLogger(
+      this.getRestifyServer(),
+      this.getLogger()
+    );
+
+    return this.reqLogger;
+  }
+
   public getAuth() {
     if (this.auth) {
       return this.auth;
     }
 
-    this.auth = new Auth(this.getRestifyServer(), this.getConfig());
+    this.auth = new Auth(
+      this.getRestifyServer(),
+      this.getConfig(),
+      this.getLogger()
+    );
 
     return this.auth;
   }
@@ -260,9 +238,11 @@ export class Services {
       return this.server;
     }
 
+    this.getReqLogger();
     this.getAuth();
     this.getCors();
     this.getRoutes();
+
     this.server = new Server(
       this.getRestifyServer(),
       this.getConfig(),

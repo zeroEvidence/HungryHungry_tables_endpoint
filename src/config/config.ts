@@ -2,7 +2,7 @@ import { config } from "dotenv";
 import { PoolConfig } from "mariadb";
 import * as process from "process";
 import { IEnvironmentOptions } from "./interfaces/environmentOptions.interface";
-import { IWinstonEnvironmentOptions } from "./interfaces/winstonEnvironmentOptions.interface";
+import { ILoggerEnvironmentOptions } from "./interfaces/loggerEnvironmentOptions.interface";
 
 export class Config {
   public env: string;
@@ -16,7 +16,7 @@ export class Config {
   public origins: string[];
   public mariaDB: PoolConfig;
   public database: string;
-  public winston: IWinstonEnvironmentOptions;
+  public logger: ILoggerEnvironmentOptions;
 
   constructor({
     env: env,
@@ -30,7 +30,7 @@ export class Config {
     origins: origins,
     mariaDB: mariaDB,
     database: database,
-    winston: winston,
+    logger: logger,
   }: IEnvironmentOptions = {}) {
     if (
       typeof process.env.NODE_ENV === "undefined" ||
@@ -62,19 +62,17 @@ export class Config {
           : 10,
     };
     this.database = database || process.env.DATABASE || "hungryhungry";
-    this.winston = {
-      transports: winston?.transports ||
-        process.env.WINSTON_TRANSPORTS?.split(",") || ["console", "database"],
+    this.logger = {
+      logTransports: logger?.logTransports ||
+        process.env.LOG_TRANSPORTS?.split(",") || ["console", "database"],
       fileLogLevel:
-        winston?.fileLogLevel || process.env.FILE_LOG_LEVEL || undefined,
+        logger?.fileLogLevel || process.env.FILE_LOG_LEVEL || undefined,
       fileLogPath:
-        winston?.fileLogPath || process.env.FILE_LOG_PATH || undefined,
+        logger?.fileLogPath || process.env.FILE_LOG_PATH || undefined,
       consoleLogLevel:
-        winston?.consoleLogLevel || process.env.CONSOLE_LOG_LEVEL || undefined,
+        logger?.consoleLogLevel || process.env.CONSOLE_LOG_LEVEL || undefined,
       databaseLogLevel:
-        winston?.databaseLogLevel ||
-        process.env.DATABASE_LOG_LEVEL ||
-        undefined,
+        logger?.databaseLogLevel || process.env.DATABASE_LOG_LEVEL || undefined,
     };
   }
 }

@@ -1,12 +1,12 @@
 import { Promise } from "bluebird";
 import * as QRCode from "qrcode";
-import { Logger } from "winston";
 import { Config } from "../config/config";
 import { IQRTable } from "../interfaces/qrTable.interface";
 import { ITable } from "../interfaces/table.interface";
 import { ITables } from "../interfaces/tables.interface";
 import { TableRepository } from "../repository/tableRepository";
 import { RoutesConfig } from "../routes/routesConfig";
+import { Logger } from "../utils/logger";
 import joi = require("joi");
 
 export class Restaurant {
@@ -52,7 +52,7 @@ export class Restaurant {
     try {
       tables = await this.tableRepo.getTables();
     } catch (error) {
-      this._logger.error(error);
+      this.logger.error(error);
     }
 
     const rooms = Object.keys(validatedTables);

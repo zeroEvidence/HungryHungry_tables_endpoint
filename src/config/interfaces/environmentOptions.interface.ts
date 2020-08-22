@@ -1,5 +1,5 @@
 import { PoolConfig } from "mariadb";
-import { IWinstonEnvironmentOptions } from "./winstonEnvironmentOptions.interface";
+import { ILoggerEnvironmentOptions } from "./loggerEnvironmentOptions.interface";
 
 export interface IEnvironmentOptions {
   env?: string | undefined;
@@ -13,5 +13,5 @@ export interface IEnvironmentOptions {
   origins?: string | undefined;
   mariaDB?: PoolConfig | undefined;
   database?: string | undefined;
-  winston?: IWinstonEnvironmentOptions | undefined;
+  logger?: ILoggerEnvironmentOptions | undefined;
 }

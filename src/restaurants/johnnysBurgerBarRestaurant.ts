@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
-import { Logger } from "winston";
 import { Config } from "../config/config";
 import { ITables } from "../interfaces/tables.interface";
 import { TableRepository } from "../repository/tableRepository";
+import { Logger } from "../utils/logger";
 import { Restaurant } from "./restaurant";
 
 export class JohnnysBurgerBarRestaurant extends Restaurant {
@@ -26,7 +26,7 @@ export class JohnnysBurgerBarRestaurant extends Restaurant {
           this.logger.error(err);
         })
         .finally(() => {
-          this.logger.info("Using cached tables data.");
+          this.logger.warn("Using cached tables data.");
 
           // Had to add this because as at 20:29 18/8/20 the uri above
           // had an error / didn't exist.

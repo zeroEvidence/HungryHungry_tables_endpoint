@@ -1,6 +1,6 @@
 import * as restify from "restify";
-import { Logger } from "winston";
 import { Config } from "../config/config";
+import { Logger } from "../utils/logger";
 
 export class Server {
   constructor(

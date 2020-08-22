@@ -1,9 +1,6 @@
-import Transport = require("winston-transport");
 import { Pool } from "mariadb";
 
-export interface IMariaDBTransportOptions
-  extends Transport.TransportStreamOptions {
-  label?: string;
+export interface IMariaDBTransportOptions {
   tableName?: string;
   connection?: {
     charset?: string;
