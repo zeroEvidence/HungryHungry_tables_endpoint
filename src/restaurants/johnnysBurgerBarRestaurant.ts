@@ -27,8 +27,6 @@ export class JohnnysBurgerBarRestaurant extends Restaurant {
         .then((tables) => resolve(tables))
         .catch((err) => {
           this.logger.error(err);
-        })
-        .finally(() => {
           this.logger.warn(this.strings.usingCachedTables);
 
           // Had to add this because as at 20:29 18/8/20 the uri above
