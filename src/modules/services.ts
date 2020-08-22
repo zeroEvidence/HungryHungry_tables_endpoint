@@ -46,7 +46,7 @@ export class Services {
 
     // This will do the above every hour.
     setInterval(() => {
-      jbbr.fetchTables();
+      jbbr.tables = jbbr.fetchTables();
     }, oneHour);
   }
 
