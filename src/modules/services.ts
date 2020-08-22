@@ -1,7 +1,9 @@
 import { readFileSync } from "fs";
 import * as restify from "restify";
 import { Config } from "../config/config";
+import { Instance } from "../config/instance";
 import { ILoggerEnvironmentOptions } from "../config/interfaces/loggerEnvironmentOptions.interface";
+import { Strings } from "../config/strings";
 import { JohnnysBurgerBarRestaurantController } from "../controllers/johnnysBurgerBarRestaurant";
 import { QRCodeController } from "../controllers/qrCode";
 import { Database } from "../database/database";
@@ -18,6 +20,8 @@ import { Logger } from "../utils/logger";
 
 export class Services {
   private config: Config | undefined;
+  private instance: Instance | undefined;
+  private strings: Strings | undefined;
   private server: Server | undefined;
   private auth: Auth | undefined;
   private cors: Cors | undefined;
@@ -60,12 +64,32 @@ export class Services {
     return this.config;
   }
 
+  public getStrings() {
+    if (this.strings) {
+      return this.strings;
+    }
+
+    this.strings = new Strings();
+
+    return this.strings;
+  }
+
+  public getInstance() {
+    if (this.instance) {
+      return this.instance;
+    }
+
+    this.instance = new Instance();
+
+    return this.instance;
+  }
+
   public getDatabase() {
     if (this.database) {
       return this.database;
     }
 
-    this.database = new Database(this.getConfig());
+    this.database = new Database(this.getConfig(), this.getStrings());
 
     return this.database;
   }
@@ -111,7 +135,8 @@ export class Services {
 
     this.reqLogger = new RequestLogger(
       this.getRestifyServer(),
-      this.getLogger()
+      this.getLogger(),
+      this.getStrings()
     );
 
     return this.reqLogger;
@@ -125,7 +150,8 @@ export class Services {
     this.auth = new Auth(
       this.getRestifyServer(),
       this.getConfig(),
-      this.getLogger()
+      this.getLogger(),
+      this.getStrings()
     );
 
     return this.auth;
@@ -178,10 +204,13 @@ export class Services {
     }
 
     const tableRepo = await this.getTableRepository();
+
     this.jbbr = new JohnnysBurgerBarRestaurant(
       tableRepo,
       this.getConfig(),
-      this.getLogger()
+      this.getLogger(),
+      this.getInstance(),
+      this.getStrings()
     );
 
     return this.jbbr;
@@ -192,12 +221,12 @@ export class Services {
       return this.jbbrController;
     }
 
-    const tableRepo = await this.getTableRepository();
+    const jbbr = await this.getJBBR();
 
     this.jbbrController = new JohnnysBurgerBarRestaurantController(
-      tableRepo,
-      this.getConfig(),
-      this.getLogger()
+      jbbr,
+      this.getLogger(),
+      this.getStrings()
     );
 
     return this.jbbrController;
@@ -210,7 +239,11 @@ export class Services {
 
     const tableRepo = await this.getTableRepository();
 
-    this.qrCodeController = new QRCodeController(tableRepo, this.getLogger());
+    this.qrCodeController = new QRCodeController(
+      tableRepo,
+      this.getLogger(),
+      this.getStrings()
+    );
 
     return this.qrCodeController;
   }
@@ -246,7 +279,8 @@ export class Services {
     this.server = new Server(
       this.getRestifyServer(),
       this.getConfig(),
-      this.getLogger()
+      this.getLogger(),
+      this.getStrings()
     );
 
     return this.server;

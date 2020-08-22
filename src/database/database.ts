@@ -1,11 +1,12 @@
 import { createPool, Pool, PoolConfig } from "mariadb";
 import { Config } from "../config/config";
+import { Strings } from "../config/strings";
 
 export class Database {
   private _pool: Pool;
   private poolConfig: PoolConfig;
 
-  constructor(private config: Config = new Config()) {
+  constructor(private config: Config = new Config(), private strings: Strings) {
     this.poolConfig = {
       rowsAsArray: false,
       timezone: "Z",
@@ -21,7 +22,12 @@ export class Database {
       .getConnection()
       .then(() => {
         // tslint:disable-next-line
-        console.log(`Connected to database at: ${this.config.mariaDB.host}.`);
+        console.log(
+          this.strings.connectedToDatabase.replace(
+            ":host:",
+            this.config.mariaDB.host!
+          )
+        );
       })
       .catch((err) => {
         // tslint:disable-next-line
@@ -35,7 +41,7 @@ export class Database {
       .end()
       .then(() => {
         // tslint:disable-next-line
-        console.log("Connection to the database as ended gracefully.");
+        console.log(this.strings.connectedToDatabaseEnded);
       })
       .finally(done);
   }

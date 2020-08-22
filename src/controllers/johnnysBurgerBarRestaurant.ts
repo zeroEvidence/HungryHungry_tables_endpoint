@@ -1,14 +1,13 @@
 import * as restify from "restify";
-import { Config } from "../config/config";
-import { TableRepository } from "../repository/tableRepository";
+import { Strings } from "../config/strings";
 import { JohnnysBurgerBarRestaurant } from "../restaurants/johnnysBurgerBarRestaurant";
 import { Logger } from "../utils/logger";
 
 export class JohnnysBurgerBarRestaurantController {
   constructor(
-    private tableRepo: TableRepository,
-    private config: Config,
-    private logger: Logger
+    private jbbr: JohnnysBurgerBarRestaurant,
+    private logger: Logger,
+    private strings: Strings
   ) {
     //
   }
@@ -20,20 +19,15 @@ export class JohnnysBurgerBarRestaurantController {
   ) {
     res.contentType = "application/json";
     try {
-      const JBBR = new JohnnysBurgerBarRestaurant(
-        this.tableRepo,
-        this.config,
-        this.logger
-      );
-      const availableTables = await JBBR.availableTables;
+      const availableTables = await this.jbbr.availableTables;
 
-      this.logger.info("responding with available tables");
+      this.logger.info(this.strings.respondingWithAvailableTables);
 
       res.send({ code: 200, message: availableTables });
     } catch (error) {
       this.logger.error(error);
 
-      res.send({ code: 503, message: "Service Unavailable" });
+      res.send({ code: 503, message: this.strings.serviceUnavailable });
     }
 
     return next();

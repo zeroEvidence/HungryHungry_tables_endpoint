@@ -1,28 +1,15 @@
-import { Config } from "../../../src/config/config";
 import { ITable } from "../../../src/interfaces/table.interface";
 import { ITables } from "../../../src/interfaces/tables.interface";
 import { Services } from "../../../src/modules/services";
-import { TableRepository } from "../../../src/repository/tableRepository";
 import { JohnnysBurgerBarRestaurant } from "../../../src/restaurants/johnnysBurgerBarRestaurant";
-import { Logger } from "../../../src/utils/logger";
 
 describe("JohnnysBurgerBarRestaurant", () => {
-  let JBBR: JohnnysBurgerBarRestaurant;
+  let jbbr: JohnnysBurgerBarRestaurant;
   let expectedAvailableTables: ITable[];
   let tables: ITables;
-  let tableRepo: TableRepository;
-  let config: Config;
-  let logger: Logger;
+  let services: Services;
 
-  beforeAll(async () => {
-    const service = new Services();
-    await service.boot();
-    tableRepo = await service.getTableRepository();
-    config = service.getConfig();
-    logger = service.getLogger();
-  });
-
-  beforeEach((done) => {
+  beforeEach(async (done) => {
     expectedAvailableTables = [
       {
         room: "Front",
@@ -470,16 +457,19 @@ describe("JohnnysBurgerBarRestaurant", () => {
       },
     };
 
-    JBBR = new JohnnysBurgerBarRestaurant(tableRepo, config, logger);
+    services = new Services();
+    await services.boot();
 
-    JBBR.tables.then(() => {
+    jbbr = await services.getJBBR();
+
+    jbbr.tables.then(() => {
       done();
     });
   });
 
   describe("availableTables", () => {
     test("Should get available tables", async () => {
-      const receivedAvailableTables = await JBBR.availableTables;
+      const receivedAvailableTables = await jbbr.availableTables;
 
       expect(receivedAvailableTables).toEqual(expectedAvailableTables);
     });
@@ -487,8 +477,8 @@ describe("JohnnysBurgerBarRestaurant", () => {
 
   describe("set tables", () => {
     test("Should set the tables data when given valid data", async () => {
-      JBBR.tables = Promise.resolve(tables);
-      const receivedTables = await JBBR.tables;
+      jbbr.tables = Promise.resolve(tables);
+      const receivedTables = await jbbr.tables;
 
       expect(receivedTables).toEqual(tables);
     });
@@ -498,8 +488,8 @@ describe("JohnnysBurgerBarRestaurant", () => {
       tablesInput.Front.name = "asdf";
 
       try {
-        JBBR.tables = Promise.resolve(tablesInput);
-        await JBBR.tables;
+        jbbr.tables = Promise.resolve(tablesInput);
+        await jbbr.tables;
       } catch (error) {
         expect(error).toEqual(
           new Error('ValidationError: "Front.name" must be [Front]')
@@ -512,8 +502,8 @@ describe("JohnnysBurgerBarRestaurant", () => {
       tablesInput.Back.tables = "isNotObject" as any;
 
       try {
-        JBBR.tables = Promise.resolve(tablesInput);
-        await JBBR.tables;
+        jbbr.tables = Promise.resolve(tablesInput);
+        await jbbr.tables;
       } catch (error) {
         expect(error).toEqual(
           new Error('ValidationError: "Back.tables" must be of type object')
@@ -526,8 +516,8 @@ describe("JohnnysBurgerBarRestaurant", () => {
       tablesInput.Back.tables.asdf = { name: "100", visible: 1 };
 
       try {
-        JBBR.tables = Promise.resolve(tablesInput);
-        await JBBR.tables;
+        jbbr.tables = Promise.resolve(tablesInput);
+        await jbbr.tables;
       } catch (error) {
         expect(error).toEqual(
           new Error("Invalid key name within tables data: tables.Back.tables")
@@ -540,8 +530,8 @@ describe("JohnnysBurgerBarRestaurant", () => {
       tablesInput.Front.tables[75] = { name: 0 as any, visible: 1 };
 
       try {
-        JBBR.tables = Promise.resolve(tablesInput);
-        await JBBR.tables;
+        jbbr.tables = Promise.resolve(tablesInput);
+        await jbbr.tables;
       } catch (error) {
         expect(error).toEqual(
           new Error(
