@@ -1,5 +1,7 @@
 import fetch from "node-fetch";
 import { Config } from "../config/config";
+import { Instance } from "../config/instance";
+import { Strings } from "../config/strings";
 import { ITables } from "../interfaces/tables.interface";
 import { TableRepository } from "../repository/tableRepository";
 import { Logger } from "../utils/logger";
@@ -10,23 +12,24 @@ export class JohnnysBurgerBarRestaurant extends Restaurant {
     tableRepo: TableRepository,
     config: Config,
     logger: Logger,
-    private tablesURI = "https://hungryhungry.com/helping-hospo/hh_test_tabledata.json"
+    instance: Instance,
+    strings: Strings
   ) {
-    super(tableRepo, config, logger);
+    super(tableRepo, config, logger, instance, strings);
 
     this.tables = this.fetchTables();
   }
 
   public fetchTables(): Promise<ITables> {
     return new Promise((resolve, reject) => {
-      fetch(this.tablesURI)
+      fetch(this.instance.hungryhungryJBBRUri)
         .then((res) => res.json())
         .then((tables) => resolve(tables))
         .catch((err) => {
           this.logger.error(err);
         })
         .finally(() => {
-          this.logger.warn("Using cached tables data.");
+          this.logger.warn(this.strings.usingCachedTables);
 
           // Had to add this because as at 20:29 18/8/20 the uri above
           // had an error / didn't exist.

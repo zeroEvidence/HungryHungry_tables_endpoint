@@ -1,6 +1,8 @@
 import { Promise } from "bluebird";
 import * as QRCode from "qrcode";
 import { Config } from "../config/config";
+import { Instance } from "../config/instance";
+import { Strings } from "../config/strings";
 import { IQRTable } from "../interfaces/qrTable.interface";
 import { ITable } from "../interfaces/table.interface";
 import { ITables } from "../interfaces/tables.interface";
@@ -16,7 +18,9 @@ export class Restaurant {
   constructor(
     private tableRepo: TableRepository,
     private config: Config,
-    private _logger: Logger
+    private _logger: Logger,
+    private _instance: Instance,
+    private _strings: Strings
   ) {
     this._tables = Promise.resolve({});
     this.routesConfig = new RoutesConfig();
@@ -44,6 +48,14 @@ export class Restaurant {
 
   public get logger() {
     return this._logger;
+  }
+
+  public get instance() {
+    return this._instance;
+  }
+
+  public get strings() {
+    return this._strings;
   }
 
   private async saveTables(validatedTables: ITables) {
@@ -74,7 +86,7 @@ export class Restaurant {
 
         if (isTableNotInDB) {
           const qrCodeData = await QRCode.toDataURL(
-            `https://dev.hungryhungry.com/oceana2/menu?locationID=1995257&tableID=${tableID}`
+            this._instance.hungryhungryQRTableUri.replace(":tableID:", tableID)
           );
 
           qrTables.push({
@@ -145,9 +157,10 @@ export class Restaurant {
 
     if (typeof tables !== "object") {
       throw new Error(
-        `Incomming tables data is not an object, tables: ${JSON.stringify(
-          tables
-        )}`
+        this._strings.incomingTablesNotAnObject.replace(
+          ":tables:",
+          JSON.stringify(tables)
+        )
       );
     }
 
@@ -170,7 +183,7 @@ export class Restaurant {
           .catch(() => {
             // the caught error wouldn't make much sense, so throwing a sensible one.
             throw new Error(
-              `Invalid key name within tables data: tables.${ordinal}.tables`
+              this._strings.invalidKeyNameInTables.replace(":room:", ordinal)
             );
           });
       }),
@@ -187,7 +200,9 @@ export class Restaurant {
             .catch(() => {
               // the caught error wouldn't make much sense, so throwing a sensible one.
               throw new Error(
-                `Invalid table object within tables data: tables.${ordinal}.tables.${tableKey}`
+                this._strings.invalidObjectInTables
+                  .replace(":room:", ordinal)
+                  .replace(":tableKey:", tableKey)
               );
             });
         });

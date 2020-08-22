@@ -1,12 +1,14 @@
 import * as restify from "restify";
 import { Config } from "../config/config";
+import { Strings } from "../config/strings";
 import { Logger } from "../utils/logger";
 
 export class Auth {
   constructor(
     private server: restify.Server,
     private config: Config,
-    private logger: Logger
+    private logger: Logger,
+    private strings: Strings
   ) {
     this.server.use(restify.plugins.authorizationParser());
     this.server.use(this.authorisation.bind(this));
@@ -21,7 +23,9 @@ export class Auth {
     const authPassword = req.authorization?.basic?.password || "";
 
     this.logger.info(
-      `Incoming username: ${authUsername}, password: ${authPassword}`
+      this.strings.authIncomingUsernamePassword
+        .replace(":authUsername:", authUsername!)
+        .replace(":authPassword:", authPassword)
     );
 
     if (
@@ -31,15 +35,21 @@ export class Auth {
       res.contentType = "application/json";
 
       this.logger.warn(
-        `Unauthorized attempt from ip: ${req.connection.remoteAddress}`
+        this.strings.unauthorizedAttempt.replace(
+          ":ip:",
+          req.connection.remoteAddress!
+        )
       );
 
-      res.send({ code: 401, message: "Unauthorized" });
+      res.send({ code: 401, message: this.strings.unauthorized });
 
       return next(false);
     } else {
       this.logger.info(
-        `Authorized access from ip: ${req.connection.remoteAddress}`
+        this.strings.authorizedAccess.replace(
+          ":ip:",
+          req.connection.remoteAddress!
+        )
       );
 
       return next();
