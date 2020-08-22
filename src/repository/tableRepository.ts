@@ -1,10 +1,10 @@
 import { Pool } from "mariadb";
-import { Logger } from "winston";
 import { Config } from "../config/config";
 import { Database } from "../database/database";
 import { IQRCode } from "../interfaces/qrCode.interface";
 import { IQRTable } from "../interfaces/qrTable.interface";
 import { ITable } from "../interfaces/table.interface";
+import { Logger } from "../utils/logger";
 
 export class TableRepository {
   private pool: Pool;
@@ -29,20 +29,14 @@ export class TableRepository {
   }
 
   public async createSchema() {
-    const connection = await this.pool.getConnection();
     const sql = `CREATE SCHEMA IF NOT EXISTS ${this.schema};`;
 
-    try {
-      await connection.query(sql);
-    } catch (error) {
+    await this.pool.query(sql).catch((error) => {
       this.logger.error(error);
-    } finally {
-      await connection.end();
-    }
+    });
   }
 
   public async createTable() {
-    const connection = await this.pool.getConnection();
     const sql = `CREATE TABLE IF NOT EXISTS ${this.schema}.tables (
         id INT UNSIGNED NOT NULL AUTO_INCREMENT,
         room VARCHAR(45) NOT NULL,
@@ -55,111 +49,96 @@ export class TableRepository {
         UNIQUE KEY (tableID)
       );`;
 
-    try {
-      await connection.query(sql);
-    } catch (error) {
+    await this.pool.query(sql).catch((error) => {
       this.logger.error(error);
-    } finally {
-      await connection.end();
-    }
+    });
   }
 
   public async insertTables(tables: IQRTable[]) {
-    const connection = await this.pool.getConnection();
+    const sql =
+      `INSERT INTO ${this.schema}.tables(room, tableID, tableName, visible, ` +
+      "QRCodePath, QRCodeData) " +
+      "VALUES (:room, :tableID, :tableName, :visible, :QRCodePath, " +
+      ":QRCodeData) " +
+      `ON DUPLICATE KEY UPDATE tableID=':tableID'`;
 
-    try {
-      await connection.beginTransaction();
-
-      const sql =
-        `INSERT INTO ${this.schema}.tables(room, tableID, tableName, visible, QRCodePath, ` +
-        "QRCodeData) " +
-        "VALUES (:room, :tableID, :tableName, :visible, :QRCodePath, " +
-        ":QRCodeData) " +
-        `ON DUPLICATE KEY UPDATE tableID=':tableID'`;
-
-      await connection.batch(sql, tables);
-
-      await connection.commit();
-    } catch (error) {
+    await this.pool.batch(sql, tables).catch((error) => {
       this.logger.error(error);
-      await connection.rollback();
-    } finally {
-      await connection.end();
-    }
+    });
   }
 
   public async getTables() {
-    const sql = `SELECT room, tableID, tableName, visible, QRCodePath FROM ${this.schema}.tables`;
-    const connection = await this.pool.getConnection();
+    const sql =
+      "SELECT room, tableID, tableName, visible, QRCodePath " +
+      `FROM ${this.schema}.tables`;
     let tables: ITable[] = [];
 
-    try {
-      const rows = await connection.query(sql);
-
-      if (typeof rows === "object" && rows?.length > 0) {
-        tables = rows.map((row: any) => ({
-          room: row.room,
-          tableID: row.tableID,
-          tableName: row.tableName,
-          visible: row.visible,
-          QRCodePath: row.QRCodePath,
-        }));
-      }
-    } catch (error) {
-      this.logger.error(error);
-    } finally {
-      await connection.end();
-    }
+    await this.pool
+      .query(sql)
+      .then((rows) => {
+        if (typeof rows === "object" && rows?.length > 0) {
+          tables = rows.map((row: any) => ({
+            room: row.room,
+            tableID: row.tableID,
+            tableName: row.tableName,
+            visible: row.visible,
+            QRCodePath: row.QRCodePath,
+          }));
+        }
+      })
+      .catch((error) => {
+        this.logger.error(error);
+      });
 
     return tables;
   }
 
   public async getVisibleTables() {
-    const sql = `SELECT room, tableID, tableName, visible, QRCodePath FROM ${this.schema}.tables WHERE visible = 1`;
-    const connection = await this.pool.getConnection();
+    const sql =
+      "SELECT room, tableID, tableName, visible, QRCodePath " +
+      `FROM ${this.schema}.tables WHERE visible = 1`;
     let tables: ITable[] = [];
 
-    try {
-      const rows = await connection.query(sql);
-
-      if (typeof rows === "object" && rows?.length > 0) {
-        tables = rows.map((row: any) => ({
-          room: row.room,
-          tableID: row.tableID,
-          tableName: row.tableName,
-          visible: row.visible,
-          QRCodePath: row.QRCodePath,
-        }));
-      }
-    } catch (error) {
-      this.logger.error(error);
-    } finally {
-      await connection.end();
-    }
+    await this.pool
+      .query(sql)
+      .then((rows) => {
+        if (typeof rows === "object" && rows?.length > 0) {
+          tables = rows.map((row: any) => ({
+            room: row.room,
+            tableID: row.tableID,
+            tableName: row.tableName,
+            visible: row.visible,
+            QRCodePath: row.QRCodePath,
+          }));
+        }
+      })
+      .catch((error) => {
+        this.logger.error(error);
+      });
 
     return tables;
   }
 
   public async getQRData(tableID: string) {
-    const sql = `SELECT QRCodeData FROM ${this.schema}.tables WHERE tableID = :tableID`;
-    const connection = await this.pool.getConnection();
+    const sql =
+      `SELECT QRCodeData FROM ${this.schema}.tables ` +
+      "WHERE tableID = :tableID";
     let qrCodeData: IQRCode = {
       QRCodeData: "",
     };
 
-    try {
-      const rows = await connection.query(sql, { tableID });
-
-      if (typeof rows === "object" && rows?.length === 1) {
-        qrCodeData = {
-          QRCodeData: rows[0].QRCodeData,
-        };
-      }
-    } catch (error) {
-      this.logger.error(error);
-    } finally {
-      await connection.end();
-    }
+    await this.pool
+      .query(sql, { tableID })
+      .then((rows) => {
+        if (typeof rows === "object" && rows?.length === 1) {
+          qrCodeData = {
+            QRCodeData: rows[0].QRCodeData,
+          };
+        }
+      })
+      .catch((error) => {
+        this.logger.error(error);
+      });
 
     return qrCodeData;
   }
