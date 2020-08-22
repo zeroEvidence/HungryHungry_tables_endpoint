@@ -2,6 +2,7 @@ import { config } from "dotenv";
 import { PoolConfig } from "mariadb";
 import * as process from "process";
 import { IEnvironmentOptions } from "./interfaces/environmentOptions.interface";
+import { ILoggerEnvironmentOptions } from "./interfaces/loggerEnvironmentOptions.interface";
 
 export class Config {
   public env: string;
@@ -14,6 +15,8 @@ export class Config {
   public keyURI: string | undefined;
   public origins: string[];
   public mariaDB: PoolConfig;
+  public database: string;
+  public logger: ILoggerEnvironmentOptions;
 
   constructor({
     env: env,
@@ -26,6 +29,8 @@ export class Config {
     keyURI: keyURI,
     origins: origins,
     mariaDB: mariaDB,
+    database: database,
+    logger: logger,
   }: IEnvironmentOptions = {}) {
     if (
       typeof process.env.NODE_ENV === "undefined" ||
@@ -55,6 +60,19 @@ export class Config {
         typeof process.env.MARIA_DB_CONNECTION_LIMIT === "string"
           ? +(process.env.MARIA_DB_CONNECTION_LIMIT as string)
           : 10,
+    };
+    this.database = database || process.env.DATABASE || "hungryhungry";
+    this.logger = {
+      logTransports: logger?.logTransports ||
+        process.env.LOG_TRANSPORTS?.split(",") || ["console", "database"],
+      fileLogLevel:
+        logger?.fileLogLevel || process.env.FILE_LOG_LEVEL || undefined,
+      fileLogPath:
+        logger?.fileLogPath || process.env.FILE_LOG_PATH || undefined,
+      consoleLogLevel:
+        logger?.consoleLogLevel || process.env.CONSOLE_LOG_LEVEL || undefined,
+      databaseLogLevel:
+        logger?.databaseLogLevel || process.env.DATABASE_LOG_LEVEL || undefined,
     };
   }
 }

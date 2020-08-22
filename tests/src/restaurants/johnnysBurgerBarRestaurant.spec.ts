@@ -1,29 +1,25 @@
 import { Config } from "../../../src/config/config";
-import { Database } from "../../../src/database/database";
 import { ITable } from "../../../src/interfaces/table.interface";
 import { ITables } from "../../../src/interfaces/tables.interface";
 import { Services } from "../../../src/modules/services";
 import { TableRepository } from "../../../src/repository/tableRepository";
 import { JohnnysBurgerBarRestaurant } from "../../../src/restaurants/johnnysBurgerBarRestaurant";
+import { Logger } from "../../../src/utils/logger";
 
 describe("JohnnysBurgerBarRestaurant", () => {
   let JBBR: JohnnysBurgerBarRestaurant;
   let expectedAvailableTables: ITable[];
   let tables: ITables;
   let tableRepo: TableRepository;
-  let db: Database;
   let config: Config;
+  let logger: Logger;
 
   beforeAll(async () => {
     const service = new Services();
     await service.boot();
     tableRepo = await service.getTableRepository();
-    db = service.getDatabase();
     config = service.getConfig();
-  });
-
-  afterAll((done) => {
-    db.stop(done);
+    logger = service.getLogger();
   });
 
   beforeEach((done) => {
@@ -474,7 +470,7 @@ describe("JohnnysBurgerBarRestaurant", () => {
       },
     };
 
-    JBBR = new JohnnysBurgerBarRestaurant(tableRepo, config);
+    JBBR = new JohnnysBurgerBarRestaurant(tableRepo, config, logger);
 
     JBBR.tables.then(() => {
       done();

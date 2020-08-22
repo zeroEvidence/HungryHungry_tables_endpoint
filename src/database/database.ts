@@ -20,11 +20,13 @@ export class Database {
   public start(done = () => undefined) {
     this._connection
       .then((connection) => {
+        // tslint:disable-next-line
         console.log(
-          `Connected to database. Connection id is: ${connection.threadId}`
+          `Connected to database. Connection id is: ${connection.threadId}.`
         );
       })
       .catch((err) => {
+        // tslint:disable-next-line
         console.error(err);
       })
       .finally(done);
@@ -34,6 +36,7 @@ export class Database {
     return this._pool
       .end()
       .then(() => {
+        // tslint:disable-next-line
         console.log("Connection to the database as ended gracefully.");
       })
       .finally(done);

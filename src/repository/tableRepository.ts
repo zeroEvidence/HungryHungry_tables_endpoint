@@ -1,4 +1,5 @@
 import { Pool } from "mariadb";
+import { Logger } from "winston";
 import { Config } from "../config/config";
 import { Database } from "../database/database";
 import { IQRCode } from "../interfaces/qrCode.interface";
@@ -9,9 +10,13 @@ export class TableRepository {
   private pool: Pool;
   private schema: string;
 
-  constructor(private database: Database, private config: Config) {
+  constructor(
+    private database: Database,
+    private config: Config,
+    private logger: Logger
+  ) {
     this.pool = this.database.pool;
-    this.schema = "hungryhungry";
+    this.schema = this.config.database;
   }
 
   public async setup() {
@@ -19,7 +24,7 @@ export class TableRepository {
       await this.createSchema();
       await this.createTable();
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
     }
   }
 
@@ -30,7 +35,7 @@ export class TableRepository {
     try {
       await connection.query(sql);
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
     } finally {
       await connection.end();
     }
@@ -53,7 +58,7 @@ export class TableRepository {
     try {
       await connection.query(sql);
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
     } finally {
       await connection.end();
     }
@@ -76,7 +81,7 @@ export class TableRepository {
 
       await connection.commit();
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
       await connection.rollback();
     } finally {
       await connection.end();
@@ -101,7 +106,7 @@ export class TableRepository {
         }));
       }
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
     } finally {
       await connection.end();
     }
@@ -127,7 +132,7 @@ export class TableRepository {
         }));
       }
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
     } finally {
       await connection.end();
     }
@@ -151,7 +156,7 @@ export class TableRepository {
         };
       }
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
     } finally {
       await connection.end();
     }

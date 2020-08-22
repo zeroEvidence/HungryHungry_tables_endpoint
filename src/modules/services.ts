@@ -1,16 +1,20 @@
 import { readFileSync } from "fs";
 import * as restify from "restify";
 import { Config } from "../config/config";
+import { ILoggerEnvironmentOptions } from "../config/interfaces/loggerEnvironmentOptions.interface";
 import { JohnnysBurgerBarRestaurantController } from "../controllers/johnnysBurgerBarRestaurant";
 import { QRCodeController } from "../controllers/qrCode";
 import { Database } from "../database/database";
 import { Auth } from "../middleware/auth";
 import { Cors } from "../middleware/cors";
+import { RequestLogger } from "../middleware/requestLogger";
 import { TableRepository } from "../repository/tableRepository";
 import { JohnnysBurgerBarRestaurant } from "../restaurants/johnnysBurgerBarRestaurant";
 import { Routes } from "../routes/routes";
 import { RoutesConfig } from "../routes/routesConfig";
 import { Server } from "../services/server";
+import { IMariaDBTransportOptions } from "../utils/interfaces/mariaDBTransportOptions.interface";
+import { Logger } from "../utils/logger";
 
 export class Services {
   private config: Config | undefined;
@@ -19,12 +23,14 @@ export class Services {
   private cors: Cors | undefined;
   private restifyServer: restify.Server | undefined;
   private routes: Routes | undefined;
-  private JBBRController: JohnnysBurgerBarRestaurantController | undefined;
-  private QRCodeController: QRCodeController | undefined;
+  private jbbrController: JohnnysBurgerBarRestaurantController | undefined;
+  private qrCodeController: QRCodeController | undefined;
   private routesConfig: RoutesConfig | undefined;
   private database: Database | undefined;
   private tableRepository: TableRepository | undefined;
   private jbbr: JohnnysBurgerBarRestaurant | undefined;
+  private logger: Logger | undefined;
+  private reqLogger: RequestLogger | undefined;
 
   constructor(config: Config = new Config()) {
     this.config = config;
@@ -64,6 +70,24 @@ export class Services {
     return this.database;
   }
 
+  public getLogger() {
+    if (this.logger) {
+      return this.logger;
+    }
+
+    const config = this.getConfig();
+    const loggerOptions: ILoggerEnvironmentOptions &
+      IMariaDBTransportOptions = {
+      databasePool: this.getDatabase().pool,
+      databaseName: config.database,
+      ...config.logger,
+    };
+
+    this.logger = new Logger(loggerOptions);
+
+    return this.logger;
+  }
+
   public async getTableRepository() {
     if (this.tableRepository) {
       return this.tableRepository;
@@ -71,7 +95,8 @@ export class Services {
 
     this.tableRepository = new TableRepository(
       this.getDatabase(),
-      this.getConfig()
+      this.getConfig(),
+      this.getLogger()
     );
 
     await this.tableRepository.setup();
@@ -79,12 +104,29 @@ export class Services {
     return this.tableRepository;
   }
 
+  public getReqLogger() {
+    if (this.reqLogger) {
+      return this.reqLogger;
+    }
+
+    this.reqLogger = new RequestLogger(
+      this.getRestifyServer(),
+      this.getLogger()
+    );
+
+    return this.reqLogger;
+  }
+
   public getAuth() {
     if (this.auth) {
       return this.auth;
     }
 
-    this.auth = new Auth(this.getRestifyServer(), this.getConfig());
+    this.auth = new Auth(
+      this.getRestifyServer(),
+      this.getConfig(),
+      this.getLogger()
+    );
 
     return this.auth;
   }
@@ -136,36 +178,41 @@ export class Services {
     }
 
     const tableRepo = await this.getTableRepository();
-    this.jbbr = new JohnnysBurgerBarRestaurant(tableRepo, this.getConfig());
+    this.jbbr = new JohnnysBurgerBarRestaurant(
+      tableRepo,
+      this.getConfig(),
+      this.getLogger()
+    );
 
     return this.jbbr;
   }
 
   public async getJBBRController() {
-    if (this.JBBRController) {
-      return this.JBBRController;
+    if (this.jbbrController) {
+      return this.jbbrController;
     }
 
     const tableRepo = await this.getTableRepository();
 
-    this.JBBRController = new JohnnysBurgerBarRestaurantController(
+    this.jbbrController = new JohnnysBurgerBarRestaurantController(
       tableRepo,
-      this.getConfig()
+      this.getConfig(),
+      this.getLogger()
     );
 
-    return this.JBBRController;
+    return this.jbbrController;
   }
 
   public async getQRCodeController() {
-    if (this.QRCodeController) {
-      return this.QRCodeController;
+    if (this.qrCodeController) {
+      return this.qrCodeController;
     }
 
     const tableRepo = await this.getTableRepository();
 
-    this.QRCodeController = new QRCodeController(tableRepo);
+    this.qrCodeController = new QRCodeController(tableRepo, this.getLogger());
 
-    return this.QRCodeController;
+    return this.qrCodeController;
   }
 
   public async getRoutes() {
@@ -191,10 +238,16 @@ export class Services {
       return this.server;
     }
 
+    this.getReqLogger();
     this.getAuth();
     this.getCors();
     this.getRoutes();
-    this.server = new Server(this.getRestifyServer(), this.getConfig());
+
+    this.server = new Server(
+      this.getRestifyServer(),
+      this.getConfig(),
+      this.getLogger()
+    );
 
     return this.server;
   }

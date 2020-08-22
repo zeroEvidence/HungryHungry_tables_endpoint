@@ -1,13 +1,11 @@
 import fetch from "node-fetch";
 import { Config } from "../../../src/config/config";
-import { Database } from "../../../src/database/database";
 import { ITable } from "../../../src/interfaces/table.interface";
 import { Services } from "../../../src/modules/services";
 import { Server } from "../../../src/services/server";
 
 describe("Server", () => {
   let server: Server;
-  let db: Database;
   let expectedAvailableTables: ITable[];
 
   beforeEach(() => {
@@ -381,13 +379,11 @@ describe("Server", () => {
     const services = new Services(config);
 
     await services.boot();
-    db = services.getDatabase();
     server = services.getServer();
     server.start(done);
   });
 
   afterAll(async (done) => {
-    await db.stop();
     server.stop(done);
   });
 

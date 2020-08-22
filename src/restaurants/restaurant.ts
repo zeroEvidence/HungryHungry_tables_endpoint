@@ -6,13 +6,18 @@ import { ITable } from "../interfaces/table.interface";
 import { ITables } from "../interfaces/tables.interface";
 import { TableRepository } from "../repository/tableRepository";
 import { RoutesConfig } from "../routes/routesConfig";
+import { Logger } from "../utils/logger";
 import joi = require("joi");
 
 export class Restaurant {
   private _tables: Promise<ITables>;
   private routesConfig: RoutesConfig;
 
-  constructor(private tableRepo: TableRepository, private config: Config) {
+  constructor(
+    private tableRepo: TableRepository,
+    private config: Config,
+    private _logger: Logger
+  ) {
     this._tables = Promise.resolve({});
     this.routesConfig = new RoutesConfig();
   }
@@ -37,8 +42,19 @@ export class Restaurant {
     });
   }
 
+  public get logger() {
+    return this._logger;
+  }
+
   private async saveTables(validatedTables: ITables) {
-    const tables: ITable[] = await this.tableRepo.getTables();
+    let tables: ITable[] = [];
+
+    try {
+      tables = await this.tableRepo.getTables();
+    } catch (error) {
+      this.logger.error(error);
+    }
+
     const rooms = Object.keys(validatedTables);
     const qrTables: IQRTable[] = [];
 
@@ -82,7 +98,7 @@ export class Restaurant {
       try {
         await this.tableRepo.insertTables(qrTables);
       } catch (error) {
-        console.error(error);
+        this._logger.error(error);
       }
     }
   }
@@ -126,6 +142,15 @@ export class Restaurant {
         .required(),
       visible: joi.number().integer().min(0).max(1).required(),
     });
+
+    if (typeof tables !== "object") {
+      throw new Error(
+        `Incomming tables data is not an object, tables: ${JSON.stringify(
+          tables
+        )}`
+      );
+    }
+
     // get an array of ordinal locations.
     const ordinals = Object.keys(tables);
 
