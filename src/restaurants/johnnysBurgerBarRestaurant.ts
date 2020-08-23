@@ -7,6 +7,8 @@ import { TableRepository } from "../repository/tableRepository";
 import { Logger } from "../utils/logger";
 import { Restaurant } from "./restaurant";
 
+// The class which contains all the Johhny's Burger Bar and Restaurant specific
+// methods. Extends the Restaurant class.
 export class JohnnysBurgerBarRestaurant extends Restaurant {
   constructor(
     tableRepo: TableRepository,
@@ -15,18 +17,29 @@ export class JohnnysBurgerBarRestaurant extends Restaurant {
     instance: Instance,
     strings: Strings
   ) {
+    // Pass the objects to the parent class.
     super(tableRepo, config, logger, instance, strings);
 
+    // Upon instigation, fetch the tables data from the HungryHungry endpoint.
     this.tables = this.fetchTables();
   }
 
   public fetchTables(): Promise<ITables> {
+    // Return the tables data, hopefully from the endpoint, otherwise from the
+    // cache.
     return new Promise((resolve, reject) => {
+      // Fetch the data from the HungryHungry endpoint.
       fetch(this.instance.hungryhungryJBBRUri)
+        // Convert the response into JSON.
         .then((res) => res.json())
+        // If I get JSON from the endpoint resolve the promise with the JSON
+        // data.
         .then((tables) => resolve(tables))
+        // If an error occurs...
         .catch((err) => {
+          // Log the error.
           this.logger.error(err);
+          // Warn that the data is coming from cache.
           this.logger.warn(this.strings.usingCachedTables);
 
           // Had to add this because as at 20:29 18/8/20 the uri above

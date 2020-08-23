@@ -1,3 +1,4 @@
+// Defines the available log levels.
 export interface ILogLevels {
   error: number;
   warn: number;

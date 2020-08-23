@@ -1,3 +1,4 @@
+// Class containing the strings for the software.
 export class Strings {
   public respondingWithAvailableTables: string;
   public serviceUnavailable: string;
