@@ -4,7 +4,7 @@ export class RoutesConfig {
     public routes = {
       tables: {
         johnnysBurgerBar: "/tables/johnnysBurgerBar",
-        qrCode: "/tables/qrimg/:tableid",
+        qrCode: "/tables/johnnysBurgerBar/qrimg/:tableid",
       },
     }
   ) {}

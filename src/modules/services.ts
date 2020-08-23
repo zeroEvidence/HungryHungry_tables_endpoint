@@ -4,8 +4,7 @@ import { Config } from "../config/config";
 import { Instance } from "../config/instance";
 import { ILoggerEnvironmentOptions } from "../config/interfaces/loggerEnvironmentOptions.interface";
 import { Strings } from "../config/strings";
-import { JohnnysBurgerBarRestaurantController } from "../controllers/johnnysBurgerBarRestaurant";
-import { QRCodeController } from "../controllers/qrCode";
+import { JohnnysBurgerBarRestaurantController } from "../controllers/johnnysBurgerBarRestaurantController";
 import { Database } from "../database/database";
 import { Auth } from "../middleware/auth";
 import { Cors } from "../middleware/cors";
@@ -30,7 +29,6 @@ export class Services {
   private restifyServer: restify.Server | undefined;
   private routes: Routes | undefined;
   private jbbrController: JohnnysBurgerBarRestaurantController | undefined;
-  private qrCodeController: QRCodeController | undefined;
   private routesConfig: RoutesConfig | undefined;
   private database: Database | undefined;
   private tableRepository: TableRepository | undefined;
@@ -301,27 +299,6 @@ export class Services {
     return this.jbbrController;
   }
 
-  // Gives back the QRCodeController object.
-  public async getQRCodeController() {
-    // Return the QRCodeController object if it's already been created.
-    if (this.qrCodeController) {
-      return this.qrCodeController;
-    }
-
-    // Get the TableRepository.
-    const tableRepo = await this.getTableRepository();
-
-    // Create a new QRCodeController object.
-    this.qrCodeController = new QRCodeController(
-      tableRepo,
-      this.getLogger(),
-      this.getStrings()
-    );
-
-    // And return it.
-    return this.qrCodeController;
-  }
-
   // Gives back the Routes object.
   public async getRoutes() {
     // Return the Routes object if it's already been created.
@@ -331,15 +308,12 @@ export class Services {
 
     // Get the JohnnysBurgerBarRestaurantController object.
     const JBBRController = await this.getJBBRController();
-    // Get the QRCodeController object.
-    const QRController = await this.getQRCodeController();
 
     // Create a new Routes object.
     this.routes = new Routes(
       this.getRestifyServer(),
       this.getRoutesConfig(),
-      JBBRController,
-      QRController
+      JBBRController
     );
 
     // And return it.
