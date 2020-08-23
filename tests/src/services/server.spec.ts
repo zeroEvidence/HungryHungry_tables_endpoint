@@ -390,7 +390,7 @@ describe("Server", () => {
   describe("start", () => {
     test("Should get unauthorised message when no basic auth is given", async () => {
       const response = await fetch(
-        "http://localhost:8080/tables/johnnysBurgerBar"
+        "http://localhost:8080/v1/tables/johnnysBurgerBar"
       ).then((res) => res.json());
 
       expect(response).toEqual({ code: 401, message: "Unauthorized" });
@@ -398,7 +398,7 @@ describe("Server", () => {
 
     test("Should get message when correct basic auth is given", async () => {
       const availableTables = await fetch(
-        "http://localhost:8080/tables/johnnysBurgerBar",
+        "http://localhost:8080/v1/tables/johnnysBurgerBar",
         {
           headers: {
             Authorization: "Basic dGVzdDoxMjM0NQ==",
@@ -414,7 +414,7 @@ describe("Server", () => {
 
     test("Should get QRCode", async () => {
       const QRCodeResponse = await fetch(
-        "http://localhost:8080/tables/johnnysBurgerBar/qrimg/63",
+        "http://localhost:8080/v1/tables/johnnysBurgerBar/qrimg/63",
         {
           headers: {
             Authorization: "Basic dGVzdDoxMjM0NQ==",
