@@ -1,3 +1,4 @@
+// The RoutesConfig class which contains the route variables.
 export class RoutesConfig {
   constructor(
     public routes = {

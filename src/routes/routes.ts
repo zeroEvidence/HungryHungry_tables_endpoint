@@ -3,6 +3,7 @@ import { JohnnysBurgerBarRestaurantController } from "../controllers/johnnysBurg
 import { QRCodeController } from "../controllers/qrCode";
 import { RoutesConfig } from "./routesConfig";
 
+// The Routes class which sets up the route with its controller.
 export class Routes {
   constructor(
     private server: restify.Server,

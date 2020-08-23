@@ -6,6 +6,8 @@ import { IQRTable } from "../interfaces/qrTable.interface";
 import { ITable } from "../interfaces/table.interface";
 import { Logger } from "../utils/logger";
 
+// The TableRepository class allows for the interaction with the tables table
+// on the database.
 export class TableRepository {
   private pool: Pool;
   private schema: string;
@@ -15,27 +17,37 @@ export class TableRepository {
     private config: Config,
     private logger: Logger
   ) {
+    // Get the database pool.
     this.pool = this.database.pool;
+    // Get the name of the database.
     this.schema = this.config.database;
   }
 
+  // Setup the database and create the table.
   public async setup() {
     try {
+      // Create the database.
       await this.createSchema();
+      // Create the tables table.
       await this.createTable();
     } catch (error) {
+      // Log any errors that occur.
       this.logger.error(error);
     }
   }
 
+  // Creates the database.
   public async createSchema() {
     const sql = `CREATE SCHEMA IF NOT EXISTS ${this.schema};`;
 
+    // Run the SQL against the database.
     await this.pool.query(sql).catch((error) => {
+      // Log any errors that occur.
       this.logger.error(error);
     });
   }
 
+  // Creates the tables table.
   public async createTable() {
     const sql = `CREATE TABLE IF NOT EXISTS ${this.schema}.tables (
         id INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -49,11 +61,14 @@ export class TableRepository {
         UNIQUE KEY (tableID)
       );`;
 
+    // Run the SQL against the database.
     await this.pool.query(sql).catch((error) => {
+      // Log any errors that occur.
       this.logger.error(error);
     });
   }
 
+  // Insert or update table records.
   public async insertTables(tables: IQRTable[]) {
     const sql =
       `INSERT INTO ${this.schema}.tables(room, tableID, tableName, visible, ` +
@@ -62,20 +77,25 @@ export class TableRepository {
       ":QRCodeData) " +
       `ON DUPLICATE KEY UPDATE tableID=':tableID'`;
 
+    // Run the SQL against the database.
     await this.pool.batch(sql, tables).catch((error) => {
+      // Log any errors that occur.
       this.logger.error(error);
     });
   }
 
+  // Gets all the table records from the tables table
   public async getTables() {
     const sql =
       "SELECT room, tableID, tableName, visible, QRCodePath " +
       `FROM ${this.schema}.tables`;
     let tables: ITable[] = [];
 
+    // Run the SQL against the database.
     await this.pool
       .query(sql)
       .then((rows) => {
+        // For each row, add a Table object to tables array.
         if (typeof rows === "object" && rows?.length > 0) {
           tables = rows.map((row: any) => ({
             room: row.room,
@@ -87,21 +107,26 @@ export class TableRepository {
         }
       })
       .catch((error) => {
+        // Log any errors that occur.
         this.logger.error(error);
       });
 
+    // Return the tables.
     return tables;
   }
 
+  // Gets all visible tables from the tables table.
   public async getVisibleTables() {
     const sql =
       "SELECT room, tableID, tableName, visible, QRCodePath " +
       `FROM ${this.schema}.tables WHERE visible = 1`;
     let tables: ITable[] = [];
 
+    // Run the SQL against the database.
     await this.pool
       .query(sql)
       .then((rows) => {
+        // For each row, add a Table object to tables array.
         if (typeof rows === "object" && rows?.length > 0) {
           tables = rows.map((row: any) => ({
             room: row.room,
@@ -113,12 +138,15 @@ export class TableRepository {
         }
       })
       .catch((error) => {
+        // Log any errors that occur.
         this.logger.error(error);
       });
 
+    // Return visible tables.
     return tables;
   }
 
+  // Gets QR data for table record matching the given tableID.
   public async getQRData(tableID: string) {
     const sql =
       `SELECT QRCodeData FROM ${this.schema}.tables ` +
@@ -127,9 +155,11 @@ export class TableRepository {
       QRCodeData: "",
     };
 
+    // Run the SQL against the database.
     await this.pool
       .query(sql, { tableID })
       .then((rows) => {
+        // Add the QR Code data to the qrCodeData object.
         if (typeof rows === "object" && rows?.length === 1) {
           qrCodeData = {
             QRCodeData: rows[0].QRCodeData,
@@ -137,9 +167,11 @@ export class TableRepository {
         }
       })
       .catch((error) => {
+        // Log any errors that occur.
         this.logger.error(error);
       });
 
+    // Return the QR Code Data.
     return qrCodeData;
   }
 }
