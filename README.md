@@ -115,3 +115,22 @@ You can now run any of the below commands:
 - `$ npm run start`: Starts the software, `build` is required to be ran before `start`.
 - `$ npm run profile`: Starts profiling the software, `build` is required to be ran before `profile`.
 - `$ npm run startDebug`: Starts the software, used internally for VS Code debugging.
+
+## To run the e2e tests:
+
+1. `$ npm run build`.
+2. `$ npm run start`.
+3. Run Postman.
+4. Import `./tests/e2e/HungryHungry.postman_collection.json`.
+5. Go to "Collections" within Postman.
+6. Under "HungryHungry" run any of the requests marked "Localhost".
+7. You may have to update the Basic Authentication username and password before running the request.
+
+Alternatively:
+
+1. `$ docker-compose up --build`.
+2. Run Postman.
+3. Import `./tests/e2e/HungryHungry.postman_collection.json`.
+4. Go to "Collections" within Postman.
+5. Under "HungryHungry" run any of the requests marked "Docker".
+6. You may have to update the Basic Authentication username and password before running the request.
