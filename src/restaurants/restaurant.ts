@@ -61,6 +61,11 @@ export class Restaurant {
     });
   }
 
+  // Get the QR Code data for the specific tableId.
+  public getQRData(tableId: string) {
+    return this.tableRepo.getQRData(tableId);
+  }
+
   // Get the Logger object.
   protected get logger() {
     return this._logger;

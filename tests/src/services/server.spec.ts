@@ -414,7 +414,7 @@ describe("Server", () => {
 
     test("Should get QRCode", async () => {
       const QRCodeResponse = await fetch(
-        "http://localhost:8080/tables/qrimg/63",
+        "http://localhost:8080/tables/johnnysBurgerBar/qrimg/63",
         {
           headers: {
             Authorization: "Basic dGVzdDoxMjM0NQ==",
