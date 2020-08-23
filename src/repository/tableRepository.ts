@@ -75,7 +75,9 @@ export class TableRepository {
       "QRCodePath, QRCodeData) " +
       "VALUES (:room, :tableID, :tableName, :visible, :QRCodePath, " +
       ":QRCodeData) " +
-      `ON DUPLICATE KEY UPDATE tableID=':tableID'`;
+      "ON DUPLICATE KEY UPDATE room=VALUES(room), " +
+      "tableName=VALUES(tableName), visible=VALUES(visible), " +
+      "QRCodePath=VALUES(QRCodePath)";
 
     // Run the SQL against the database.
     await this.pool.batch(sql, tables).catch((error) => {
