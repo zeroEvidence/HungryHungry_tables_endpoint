@@ -106,13 +106,21 @@ export class Restaurant {
 
       // For each table ID
       await Promise.each(tableIDs, async (tableID) => {
+        const qrCodePath = `http://${this.config.localHost}:${
+          this.config.port
+        }${this.routesConfig.routes.tables.qrCode.replace(
+          ":tableid",
+          tableID
+        )}`;
+
         // Is this incoming table NOT already in the database?
         const isTableNotInDB = !tables.some((table) => {
           return (
             table.room === room &&
             table.tableID === tableID &&
             table.tableName === roomTables[tableID].name &&
-            table.visible === roomTables[tableID].visible
+            table.visible === roomTables[tableID].visible &&
+            table.QRCodePath === qrCodePath
           );
         });
 
