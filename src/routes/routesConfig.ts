@@ -3,8 +3,8 @@ export class RoutesConfig {
   constructor(
     public routes = {
       tables: {
-        johnnysBurgerBar: "/tables/johnnysBurgerBar",
-        qrCode: "/tables/johnnysBurgerBar/qrimg/:tableid",
+        johnnysBurgerBar: "/v1/tables/johnnysBurgerBar",
+        qrCode: "/v1/tables/johnnysBurgerBar/qrimg/:tableid",
       },
     }
   ) {}
