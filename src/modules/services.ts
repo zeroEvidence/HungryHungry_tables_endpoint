@@ -204,7 +204,12 @@ export class Services {
     }
 
     // Creates a new CORS object.
-    this.cors = new Cors(this.getRestifyServer(), this.getConfig());
+    this.cors = new Cors(
+      this.getRestifyServer(),
+      this.getConfig(),
+      this.getLogger(),
+      this.getStrings()
+    );
 
     // And returns it.
     return this.cors;

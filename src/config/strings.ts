@@ -16,6 +16,8 @@ export class Strings {
   public invalidObjectInTables: string;
   public restifyListeningAt: string;
   public restifyClosed: string;
+  public corsUnmatchedOrigin: string;
+  public corsMatchedOrigin: string;
 
   constructor() {
     this.respondingWithAvailableTables = "Responding with available tables.";
@@ -40,5 +42,9 @@ export class Strings {
       "Invalid table object within tables data: tables.:room:.tables.:tableKey:";
     this.restifyListeningAt = ":name: listening at :url:";
     this.restifyClosed = ":name: closed and stopped listening at :url:";
+    this.corsUnmatchedOrigin =
+      "Could not match incoming origin header: :incomingHeader:, with config.origins: :configOrigins:";
+    this.corsMatchedOrigin =
+      "Matched incoming origins header with origins in config.";
   }
 }
