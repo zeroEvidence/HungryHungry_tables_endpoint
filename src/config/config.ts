@@ -1,5 +1,6 @@
 import { config } from "dotenv";
 import { PoolConfig } from "mariadb";
+import { resolve } from "path";
 import * as process from "process";
 import { IEnvironmentOptions } from "./interfaces/environmentOptions.interface";
 import { ILoggerEnvironmentOptions } from "./interfaces/loggerEnvironmentOptions.interface";
@@ -63,7 +64,7 @@ export class Config {
     // more info.
     logger: logger,
   }: IEnvironmentOptions = {}) {
-    // load the .env file if the environment is "test" or "development"
+    // load the .env file if the environment is "development".
     if (
       typeof process.env.NODE_ENV === "undefined" ||
       process.env.NODE_ENV === "development" ||
@@ -72,11 +73,23 @@ export class Config {
       config();
     }
 
+    // load the .env.test file if the environment is "test".
+    if (process.env.NODE_ENV === "testenv") {
+      config({ path: resolve(process.cwd(), ".env.test") });
+    }
+
     // set each property using the deconstructed variable, failing that, then
     // the from the environment variables, failing that, the default value.
     this.env = env || process.env.NODE_ENV || "development";
-    this.port =
-      port || typeof process.env.PORT === "string" ? +process.env.PORT! : 8080;
+
+    if (typeof port === "number") {
+      this.port = port;
+    } else if (typeof process.env.PORT === "string") {
+      this.port = +process.env.PORT;
+    } else {
+      this.port = 8080;
+    }
+
     this.localHost = localHost || process.env.LOCAL_HOST || "localhost";
     this.restifyHost = restifyHost || process.env.RESTIFY_HOST || "localhost";
     this.authPassword = authPassword || process.env.AUTH_PASSWORD || undefined;
@@ -89,12 +102,16 @@ export class Config {
       host: mariaDB?.host || process.env.MARIA_DB_HOST || "localhost",
       user: mariaDB?.user || process.env.MARIA_DB_USER || "",
       password: mariaDB?.password || process.env.MARIA_DB_PASSWORD || "",
-      connectionLimit:
-        mariaDB?.connectionLimit ||
-        typeof process.env.MARIA_DB_CONNECTION_LIMIT === "string"
-          ? +(process.env.MARIA_DB_CONNECTION_LIMIT as string)
-          : 10,
     };
+
+    if (typeof mariaDB?.connectionLimit === "number") {
+      this.mariaDB.connectionLimit = mariaDB.connectionLimit;
+    } else if (typeof process.env.MARIA_DB_CONNECTION_LIMIT === "string") {
+      this.mariaDB.connectionLimit = +process.env.MARIA_DB_CONNECTION_LIMIT;
+    } else {
+      this.mariaDB.connectionLimit = 10;
+    }
+
     this.database = database || process.env.DATABASE || "hungryhungry";
     this.logger = {
       logTransports: logger?.logTransports ||
