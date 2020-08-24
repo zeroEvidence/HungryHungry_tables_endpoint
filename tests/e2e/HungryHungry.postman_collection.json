@@ -1,0 +1,79 @@
+{
+	"variables": [],
+	"info": {
+		"name": "HungryHungry",
+		"_postman_id": "c39a6bc6-b178-e087-def1-31a8420782f6",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Localhost: get available tables.",
+			"request": {
+				"url": "http://localhost:8080/v1/tables/johnnysBurgerBar",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic dGVzdDoxMjM0NQ==",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Docker: get available tables.",
+			"request": {
+				"url": "http://localhost:8080/v1/tables/johnnysBurgerBar",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46MTIzNDU=",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Localhost: get QR Code data for tableId = 63",
+			"request": {
+				"url": "http://localhost:8080/v1/tables/johnnysBurgerBar/qrimg/63",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic dGVzdDoxMjM0NQ==",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "Docker: get QR Code data for tableId = 63",
+			"request": {
+				"url": "http://localhost:8080/v1/tables/johnnysBurgerBar/qrimg/63",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46MTIzNDU=",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}

@@ -1,3 +1,4 @@
+// Describes the inner tables object received from the HungryHungry endpoint.
 export interface IOrdinalTables {
   name: string;
   tables: {
