@@ -6,6 +6,7 @@ import { Strings } from "../config/strings";
 export class Database {
   private _pool: Pool;
   private poolConfig: PoolConfig;
+  private isStopped: boolean;
 
   constructor(private config: Config = new Config(), private strings: Strings) {
     // Create the Pool config, used to connect to the database.
@@ -18,6 +19,9 @@ export class Database {
 
     // Create the pool.
     this._pool = createPool(this.poolConfig);
+
+    // Set isStopped to false.
+    this.isStopped = false;
   }
 
   // Ensures that the pool had been created and Test the connection.
@@ -47,6 +51,15 @@ export class Database {
 
   // Closes the pool
   public stop(done = () => undefined) {
+    // If the pool has been already stopped once do not stop it again.
+    if (this.isStopped) {
+      return Promise.resolve().finally(done);
+    }
+
+    // Otherwise set the isStopped flag to true.
+    this.isStopped = true;
+
+    // And stop the pool.
     return (
       this._pool
         .end()

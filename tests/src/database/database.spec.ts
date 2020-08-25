@@ -1,12 +1,14 @@
 import { Config } from "../../../src/config/config";
+import { Strings } from "../../../src/config/strings";
 import { Database } from "../../../src/database/database";
-import { Services } from "../../../src/modules/services";
-import { MockLogger } from "../../__mocks/mockLogger";
+
+let database: Database;
+
+afterAll(async (done) => {
+  await database.stop(done);
+});
 
 describe("Database", () => {
-  let services: Services;
-  let database: Database;
-
   beforeEach(async () => {
     const config = new Config({
       logger: {
@@ -15,21 +17,7 @@ describe("Database", () => {
       },
     });
 
-    const logger = new MockLogger({
-      databasePool: {} as any,
-      databaseName: config.database,
-      ...config.logger,
-    });
-
-    services = new Services(config, undefined, logger);
-
-    await services.boot();
-
-    database = services.getDatabase();
-  });
-
-  afterEach(async (done) => {
-    await database.stop(done);
+    database = new Database(config, new Strings());
   });
 
   describe("Start", () => {

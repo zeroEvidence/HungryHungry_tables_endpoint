@@ -1,7 +1,8 @@
 import { Config } from "../../../src/config/config";
+import { Instance } from "../../../src/config/instance";
+import { Strings } from "../../../src/config/strings";
 import { ITable } from "../../../src/interfaces/table.interface";
 import { ITables } from "../../../src/interfaces/tables.interface";
-import { Services } from "../../../src/modules/services";
 import { JohnnysBurgerBarRestaurant } from "../../../src/restaurants/johnnysBurgerBarRestaurant";
 import { MockDatabase } from "../../__mocks/mockDatabase";
 import { MockLogger } from "../../__mocks/mockLogger";
@@ -491,10 +492,13 @@ describe("JohnnysBurgerBarRestaurant", () => {
 
     const database = new MockDatabase() as any;
 
-    const services = new Services(config, tableRepo, logger, database);
-    await services.boot();
-
-    jbbr = await services.getJBBR();
+    jbbr = new JohnnysBurgerBarRestaurant(
+      tableRepo,
+      config,
+      logger,
+      new Instance(),
+      new Strings()
+    );
 
     jbbr.tables.then(() => {
       done();
