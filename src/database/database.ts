@@ -22,25 +22,27 @@ export class Database {
 
   // Ensures that the pool had been created and Test the connection.
   public start(done = () => undefined) {
-    this._pool
-      .getConnection()
-      .then(() => {
-        // If successfully connected, log the connection information to console.
-        // tslint:disable-next-line
-        console.log(
-          this.strings.connectedToDatabase.replace(
-            ":host:",
-            this.config.mariaDB.host!
-          )
-        );
-      })
-      .catch((err) => {
-        // If there is a connection error, log it to console.
-        // tslint:disable-next-line
-        console.error(err);
-      })
-      // call the callback regardless of outcome.
-      .finally(done);
+    return (
+      this._pool
+        .getConnection()
+        .then(() => {
+          // If successfully connected, log the connection information to console.
+          // tslint:disable-next-line
+          console.log(
+            this.strings.connectedToDatabase.replace(
+              ":host:",
+              this.config.mariaDB.host!
+            )
+          );
+        })
+        .catch((err) => {
+          // If there is a connection error, log it to console.
+          // tslint:disable-next-line
+          console.error(err);
+        })
+        // call the callback regardless of outcome.
+        .finally(done)
+    );
   }
 
   // Closes the pool
