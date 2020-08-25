@@ -66,16 +66,19 @@ export class Services {
   public async boot() {
     await this.getDatabase().start();
 
-    // This will fetch the tables from the HungryHungry endpoint
-    // and save them to the database along with their QRCodes data.
-    const jbbr = await this.getJBBR();
-    const oneHour = 1000 * 60 * 60;
+    // If the environment is production, fetch the tables data and do so every hour.
+    if (process.env.NODE_ENV === "production") {
+      // This will fetch the tables from the HungryHungry endpoint
+      // and save them to the database along with their QRCodes data.
+      const jbbr = await this.getJBBR();
+      const oneHour = 1000 * 60 * 60;
 
-    // This will fetch the tables from the endpoint above every hour and save
-    // them into the database.
-    setInterval(() => {
-      jbbr.tables = jbbr.fetchTables();
-    }, oneHour);
+      // This will fetch the tables from the endpoint above every hour and save
+      // them into the database.
+      setInterval(() => {
+        jbbr.tables = jbbr.fetchTables();
+      }, oneHour);
+    }
   }
 
   // Gives back the Config object.
@@ -298,6 +301,8 @@ export class Services {
       this.getStrings()
     );
 
+    await this.jbbr.tables;
+
     // And return it.
     return this.jbbr;
   }
@@ -346,7 +351,7 @@ export class Services {
   }
 
   // Gives back the Server object.
-  public getServer() {
+  public async getServer() {
     // Return the Server object if it's already been created.
     if (this.server) {
       return this.server;
@@ -359,7 +364,7 @@ export class Services {
     // Load the CORS middleware.
     this.getCors();
     // Load the Routes.
-    this.getRoutes();
+    await this.getRoutes();
 
     // Create a new Server object.
     this.server = new Server(
