@@ -7,19 +7,19 @@ import { IMariaDBTransportOptions } from "./interfaces/mariaDBTransportOptions.i
 
 // The Logger class which manages the output of logs.
 export class Logger {
-  private levels: ILogLevels;
-  private databaseLogLevel: number | undefined;
-  private consoleLogLevel: number | undefined;
-  private fileLogLevel: number | undefined;
-  private fileLogPath: string | undefined;
-  private tableName: string;
-  private connection: any;
-  private pool: Pool;
-  private databaseName: string;
+  protected levels: ILogLevels;
+  protected databaseLogLevel: number | undefined;
+  protected consoleLogLevel: number | undefined;
+  protected fileLogLevel: number | undefined;
+  protected fileLogPath: string | undefined;
+  protected tableName: string;
+  protected connection: any;
+  protected pool: Pool;
+  protected databaseName: string;
 
   // The constructor which takes an options object.
   constructor(
-    private options: ILoggerEnvironmentOptions & IMariaDBTransportOptions
+    protected options: ILoggerEnvironmentOptions & IMariaDBTransportOptions
   ) {
     // The possible log levels.
     this.levels = {
@@ -325,7 +325,7 @@ export class Logger {
   }
 
   // Logs a message to the database.
-  private async logToDatabase(
+  protected async logToDatabase(
     message: string,
     level: string,
     timestamp = new Date()
@@ -351,7 +351,7 @@ export class Logger {
   }
 
   // Logs a message to a file.
-  private logToFile(message: string, level: string, timestamp = new Date()) {
+  protected logToFile(message: string, level: string, timestamp = new Date()) {
     // If the log file path has been set.
     if (!!this.fileLogPath) {
       const fileData = `level: ${level}, timestamp: ${timestamp}, message: ${message}`;
@@ -424,7 +424,7 @@ export class Logger {
   }
 
   // Initialise the logs table on the database.
-  private async initTable() {
+  protected async initTable() {
     // Deconstruct the charset and collate.
     const { charset, collate } = this.connection;
     const sql =

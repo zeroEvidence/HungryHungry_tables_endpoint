@@ -3,6 +3,9 @@ import { Config } from "../../../src/config/config";
 import { ITable } from "../../../src/interfaces/table.interface";
 import { Services } from "../../../src/modules/services";
 import { Server } from "../../../src/services/server";
+import { MockDatabase } from "../../__mocks/mockDatabase";
+import { MockLogger } from "../../__mocks/mockLogger";
+import { MockTableRepository } from "../../__mocks/mockTableRepository";
 
 describe("Server", () => {
   let server: Server;
@@ -394,7 +397,14 @@ describe("Server", () => {
         consoleLogLevel: "error",
       },
     });
-    const services = new Services(config);
+    const logger = new MockLogger({
+      databasePool: {} as any,
+      databaseName: config.database,
+      ...config.logger,
+    });
+    const tableRepo = new MockTableRepository() as any;
+    const database = new MockDatabase() as any;
+    const services = new Services(config, tableRepo, logger, database);
 
     await services.boot();
     server = services.getServer();
