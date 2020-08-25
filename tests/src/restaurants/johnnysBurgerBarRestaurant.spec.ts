@@ -3,12 +3,14 @@ import { ITable } from "../../../src/interfaces/table.interface";
 import { ITables } from "../../../src/interfaces/tables.interface";
 import { Services } from "../../../src/modules/services";
 import { JohnnysBurgerBarRestaurant } from "../../../src/restaurants/johnnysBurgerBarRestaurant";
+import { MockDatabase } from "../../__mocks/mockDatabase";
+import { MockLogger } from "../../__mocks/mockLogger";
+import { MockTableRepository } from "../../__mocks/mockTableRepository";
 
 describe("JohnnysBurgerBarRestaurant", () => {
   let jbbr: JohnnysBurgerBarRestaurant;
   let expectedAvailableTables: ITable[];
   let tables: ITables;
-  let services: Services;
 
   beforeEach(async (done) => {
     expectedAvailableTables = [
@@ -479,7 +481,17 @@ describe("JohnnysBurgerBarRestaurant", () => {
       },
     });
 
-    services = new Services(config);
+    const logger = new MockLogger({
+      databasePool: {} as any,
+      databaseName: config.database,
+      ...config.logger,
+    });
+
+    const tableRepo = new MockTableRepository() as any;
+
+    const database = new MockDatabase() as any;
+
+    const services = new Services(config, tableRepo, logger, database);
     await services.boot();
 
     jbbr = await services.getJBBR();

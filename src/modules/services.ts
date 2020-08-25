@@ -37,8 +37,28 @@ export class Services {
   private reqLogger: RequestLogger | undefined;
 
   // Constructor takes a config object to overwrite the default config.
-  constructor(config: Config = new Config()) {
+  constructor(
+    config: Config = new Config(),
+    tableRepository?: TableRepository | undefined,
+    logger?: Logger | undefined,
+    database?: Database | undefined
+  ) {
     this.config = config;
+
+    // Used for testing, mocking the TableRepository.
+    if (tableRepository) {
+      this.tableRepository = tableRepository;
+    }
+
+    // Used for testing, mocking the Logger.
+    if (logger) {
+      this.logger = logger;
+    }
+
+    // Used for testing, mocking the Database.
+    if (database) {
+      this.database = database;
+    }
   }
 
   // Boot initiates any connections required before the creation of services

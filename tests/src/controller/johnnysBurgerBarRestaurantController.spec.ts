@@ -1,5 +1,12 @@
+import { Config } from "../../../src/config/config";
 import { JohnnysBurgerBarRestaurantController } from "../../../src/controllers/johnnysBurgerBarRestaurantController";
+import { Database } from "../../../src/database/database";
 import { Services } from "../../../src/modules/services";
+import { TableRepository } from "../../../src/repository/tableRepository";
+import { Logger } from "../../../src/utils/logger";
+import { MockDatabase } from "../../__mocks/mockDatabase";
+import { MockLogger } from "../../__mocks/mockLogger";
+import { MockTableRepository } from "../../__mocks/mockTableRepository";
 
 describe("JohnnysBurgerBarRestaurantController", () => {
   const expectedAvailableTables = [
@@ -361,10 +368,33 @@ describe("JohnnysBurgerBarRestaurantController", () => {
       QRCodePath: "http://localhost:8080/v1/tables/johnnysBurgerBar/qrimg/104",
     },
   ];
+  let config: Config;
+  let logger: Logger;
+  let tableRepo: TableRepository;
+  let database: Database;
+
+  beforeAll(() => {
+    config = new Config({
+      logger: {
+        logTransports: ["console"],
+        consoleLogLevel: "error",
+      },
+    });
+
+    logger = new MockLogger({
+      databasePool: {} as any,
+      databaseName: config.database,
+      ...config.logger,
+    });
+
+    tableRepo = new MockTableRepository() as any;
+
+    database = new MockDatabase() as any;
+  });
 
   describe("tables", () => {
     test("tables should send a response", async () => {
-      const services = new Services();
+      const services = new Services(config, tableRepo, logger, database);
 
       await services.boot();
 
@@ -387,7 +417,7 @@ describe("JohnnysBurgerBarRestaurantController", () => {
     });
 
     test("tables should send an error", async () => {
-      const services = new Services();
+      const services = new Services(config, tableRepo, logger, database);
 
       await services.boot();
 
