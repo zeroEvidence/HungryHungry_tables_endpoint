@@ -1,14 +1,17 @@
 import { Config } from "../../../src/config/config";
+import { Instance } from "../../../src/config/instance";
+import { Strings } from "../../../src/config/strings";
 import { ITable } from "../../../src/interfaces/table.interface";
 import { ITables } from "../../../src/interfaces/tables.interface";
-import { Services } from "../../../src/modules/services";
 import { JohnnysBurgerBarRestaurant } from "../../../src/restaurants/johnnysBurgerBarRestaurant";
+import { MockDatabase } from "../../__mocks/mockDatabase";
+import { MockLogger } from "../../__mocks/mockLogger";
+import { MockTableRepository } from "../../__mocks/mockTableRepository";
 
 describe("JohnnysBurgerBarRestaurant", () => {
   let jbbr: JohnnysBurgerBarRestaurant;
   let expectedAvailableTables: ITable[];
   let tables: ITables;
-  let services: Services;
 
   beforeEach(async (done) => {
     expectedAvailableTables = [
@@ -479,10 +482,23 @@ describe("JohnnysBurgerBarRestaurant", () => {
       },
     });
 
-    services = new Services(config);
-    await services.boot();
+    const logger = new MockLogger({
+      databasePool: {} as any,
+      databaseName: config.database,
+      ...config.logger,
+    });
 
-    jbbr = await services.getJBBR();
+    const tableRepo = new MockTableRepository() as any;
+
+    const database = new MockDatabase() as any;
+
+    jbbr = new JohnnysBurgerBarRestaurant(
+      tableRepo,
+      config,
+      logger,
+      new Instance(),
+      new Strings()
+    );
 
     jbbr.tables.then(() => {
       done();
