@@ -6,6 +6,7 @@ import { Strings } from "../config/strings";
 export class Database {
   private _pool: Pool;
   private poolConfig: PoolConfig;
+  private isStopped: boolean;
 
   constructor(private config: Config = new Config(), private strings: Strings) {
     // Create the Pool config, used to connect to the database.
@@ -18,33 +19,47 @@ export class Database {
 
     // Create the pool.
     this._pool = createPool(this.poolConfig);
+
+    // Set isStopped to false.
+    this.isStopped = false;
   }
 
   // Ensures that the pool had been created and Test the connection.
   public start(done = () => undefined) {
-    this._pool
-      .getConnection()
-      .then(() => {
-        // If successfully connected, log the connection information to console.
-        // tslint:disable-next-line
-        console.log(
-          this.strings.connectedToDatabase.replace(
-            ":host:",
-            this.config.mariaDB.host!
-          )
-        );
-      })
-      .catch((err) => {
-        // If there is a connection error, log it to console.
-        // tslint:disable-next-line
-        console.error(err);
-      })
-      // call the callback regardless of outcome.
-      .finally(done);
+    return (
+      this._pool
+        .getConnection()
+        .then(() => {
+          // If successfully connected, log the connection information to console.
+          // tslint:disable-next-line
+          console.log(
+            this.strings.connectedToDatabase.replace(
+              ":host:",
+              this.config.mariaDB.host!
+            )
+          );
+        })
+        .catch((err) => {
+          // If there is a connection error, log it to console.
+          // tslint:disable-next-line
+          console.error(err);
+        })
+        // call the callback regardless of outcome.
+        .finally(done)
+    );
   }
 
   // Closes the pool
   public stop(done = () => undefined) {
+    // If the pool has been already stopped once do not stop it again.
+    if (this.isStopped) {
+      return Promise.resolve().finally(done);
+    }
+
+    // Otherwise set the isStopped flag to true.
+    this.isStopped = true;
+
+    // And stop the pool.
     return (
       this._pool
         .end()

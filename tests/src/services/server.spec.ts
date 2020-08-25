@@ -407,7 +407,7 @@ describe("Server", () => {
     const services = new Services(config, tableRepo, logger, database);
 
     await services.boot();
-    server = services.getServer();
+    server = await services.getServer();
     server.start(done);
   });
 
